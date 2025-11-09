@@ -1,16 +1,18 @@
-# SplitGPT
+# Zplitgpt
+
+![ZplitGPT Logo](./public/ZplitGPT.svg)
 
 **A clean, direct AI model comparison tool built for developers and AI enthusiasts.**
 
 ## The Story
 
-SplitGPT started as an experiment after trying AI Fiesta for a while and realizing it wasn't built for people who actually understand how AI models work. Fiesta looked good but it felt more like a closed playground — credits didn't make sense, responses were inconsistent, and users had no real control over models or cost. It was made for general users, not for those who wanted to test, compare, and actually understand what each model is doing.
+Zplitgpt started as an experiment after trying AI Fiesta for a while and realizing it wasn't built for people who actually understand how AI models work. Fiesta looked good but it felt more like a closed playground — credits didn't make sense, responses were inconsistent, and users had no real control over models or cost. It was made for general users, not for those who wanted to test, compare, and actually understand what each model is doing.
 
-So SplitGPT was made to fix that. It's a clean web app that lets you connect to real APIs directly, pick your own models, and run them side by side in a single screen. No fake tokens, no middle layer, no random limits. Just your API key, your models, and full control over what happens.
+So Zplitgpt was made to fix that. It's a clean web app that lets you connect to real APIs directly, pick your own models, and run them side by side in a single screen. No fake tokens, no middle layer, no random limits. Just your API key, your models, and full control over what happens.
 
 The goal is simple: make a space where you can compare how different LLMs think using the same prompt. Every model runs in its own column, so you can literally see the differences in reasoning, tone, and quality at once. It's built for developers, AI tinkerers, and anyone who likes understanding why one model answers differently than another.
 
-The name SplitGPT comes from that idea — splitting your screen and your perspective to see AI behavior clearly. It's not a product or a social platform. It's just a sharp tool built to work exactly how enthusiasts expect it to.
+The name Zplitgpt comes from that idea — splitting your screen and your perspective to see AI behavior clearly. It's not a product or a social platform. It's just a sharp tool built to work exactly how enthusiasts expect it to.
 
 ## Features
 
@@ -55,7 +57,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Philosophy
 
-SplitGPT is built on a simple principle: **give users full control and direct access**. 
+Zplitgpt is built on a simple principle: **give users full control and direct access**. 
 
 - No artificial limits or credit systems
 - No abstraction layer between you and the models
@@ -71,6 +73,14 @@ It's a tool for people who understand AI models and want to see them work, not a
 - **Tailwind CSS** - Styling
 - **Radix UI** - Accessible components
 - **Lucide React** - Icons
+
+## Assets
+
+The project includes the following logo and icon assets in the `public` folder:
+
+- **ZplitGPT.svg** - Main logo in SVG format (used in UI components)
+- **ZplitGPT.png** - Main logo in PNG format (used for Apple touch icons and social sharing)
+- **favicon.ico** - Browser favicon (used in browser tabs and bookmarks)
 
 ## License
 

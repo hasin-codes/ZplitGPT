@@ -14,24 +14,35 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SplitGPT - AI Comparison Environment",
+  title: "Zplitgpt - AI Comparison Environment",
   description: "Advanced AI comparison environment for developers and enthusiasts. Compare multiple LLM responses side-by-side with precision controls.",
-  keywords: ["SplitGPT", "AI", "LLM", "Comparison", "Development", "React"],
-  authors: [{ name: "SplitGPT Team" }],
+  keywords: ["Zplitgpt", "AI", "LLM", "Comparison", "Development", "React"],
+  authors: [{ name: "Zplitgpt Team" }],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/ZplitGPT.png",
   },
   openGraph: {
-    title: "SplitGPT - AI Comparison Environment",
+    title: "Zplitgpt - AI Comparison Environment",
     description: "Advanced AI comparison environment for developers and enthusiasts",
     url: "https://chat.z.ai",
-    siteName: "SplitGPT",
+    siteName: "Zplitgpt",
     type: "website",
+    images: [
+      {
+        url: "/ZplitGPT.png",
+        width: 1200,
+        height: 630,
+        alt: "ZplitGPT Logo",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "SplitGPT - AI Comparison Environment",
+    title: "Zplitgpt - AI Comparison Environment",
     description: "Advanced AI comparison environment for developers and enthusiasts",
+    images: ["/ZplitGPT.png"],
   },
 };
 

@@ -44,7 +44,7 @@ export default function Home() {
   }
 
   const handleSaveContext = () => {
-    localStorage.setItem('splitgpt-context', context)
+    localStorage.setItem('Zplitgpt-context', context)
     console.log('Context saved:', context)
   }
 

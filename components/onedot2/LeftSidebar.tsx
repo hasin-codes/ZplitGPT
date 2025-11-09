@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { Lock, Unlock, FolderOpen, MessageSquare, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -92,8 +93,15 @@ export function LeftSidebar({ collapsed, onToggle, onHoverChange }: LeftSidebarP
         }}
       >
       <SidebarHeader className="p-4 flex items-center justify-center border-b border-[#1a1a1a] relative w-full">
-        <div className="w-8 h-8 bg-[#ff4f2b] rounded-lg flex items-center justify-center flex-shrink-0" style={{ position: 'relative', transition: 'none' }}>
-          <span className="text-white font-bold text-xs" style={{ transition: 'none', position: 'relative' }}>SG</span>
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ position: 'relative', transition: 'none' }}>
+          <Image 
+            src="/ZplitGPT.svg" 
+            alt="ZplitGPT Logo" 
+            width={32} 
+            height={32} 
+            className="w-full h-full object-contain"
+            style={{ transition: 'none', position: 'relative' }}
+          />
         </div>
       </SidebarHeader>
 
