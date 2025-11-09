@@ -79,7 +79,7 @@ export function AIInput({ leftCollapsed, selectedChat, onChatNameUpdate }: AIInp
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Start typing..."
-            className="flex-1 bg-transparent border-none resize-none text-[#f5f5f5] placeholder-[#666666] focus:outline-none focus:ring-0 min-h-[24px] max-h-[120px] overflow-y-auto"
+            className="flex-1 bg-transparent border-none resize-none text-[#f5f5f5] placeholder-[#666666] focus:outline-none focus:ring-0 min-h-[24px] max-h-[120px] overflow-y-auto text-sm font-mono"
             rows={1}
             style={{
               scrollbarWidth: 'thin',

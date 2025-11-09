@@ -2,13 +2,12 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { Lock, Unlock, FolderOpen, MessageSquare, Plus } from 'lucide-react'
+import { FolderOpen, MessageSquare, Plus, HelpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
+import ProfileDropdown from '@/components/kokonutui/profile-dropdown'
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -24,36 +23,59 @@ interface LeftSidebarProps {
   collapsed: boolean
   onToggle: () => void
   onHoverChange?: (isHovered: boolean) => void
+  projects?: Project[]
+  chats?: ChatHistory[]
+  selectedProject?: string
+  selectedChat?: string
+  onProjectSelect?: (projectId: string) => void
+  onChatSelect?: (chatId: string) => void
+  onProjectCreate?: (name: string) => void
+  onChatCreate?: () => void
+  onProjectRename?: (projectId: string, name: string) => void
+  onChatRename?: (chatId: string, name: string) => void
 }
 
-interface Project {
+export interface Project {
   id: string
   name: string
   lastModified: string
 }
 
-interface ChatHistory {
+export interface ChatHistory {
   id: string
   title: string
   timestamp: string
 }
 
-export function LeftSidebar({ collapsed, onToggle, onHoverChange }: LeftSidebarProps) {
+export function LeftSidebar({ 
+  collapsed, 
+  onToggle, 
+  onHoverChange,
+  projects: propsProjects,
+  chats: propsChats,
+  selectedProject: propsSelectedProject,
+  selectedChat: propsSelectedChat,
+  onProjectSelect: propsOnProjectSelect,
+  onChatSelect: propsOnChatSelect,
+  onProjectCreate,
+  onChatCreate,
+  onProjectRename,
+  onChatRename
+}: LeftSidebarProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const isExpanded = isHovered // Only expand on hover
-  const [vaultLocked, setVaultLocked] = useState(false)
-  const [selectedProject, setSelectedProject] = useState('default')
-  const [selectedChat, setSelectedChat] = useState('chat-1')
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
+  const isExpanded = isHovered || isProfileDropdownOpen // Expand on hover or when dropdown is open
   const [projectsExpanded, setProjectsExpanded] = useState(false)
 
-  const projects: Project[] = [
+  // Use props if provided, otherwise use default internal state
+  const projects: Project[] = propsProjects || [
     { id: 'default', name: 'Default Workspace', lastModified: '2 hours ago' },
     { id: 'quantum-computing', name: 'Quantum Computing', lastModified: '1 day ago' },
     { id: 'api-design', name: 'API Design', lastModified: '3 days ago' },
     { id: 'code-review', name: 'Code Review', lastModified: '1 week ago' }
   ]
 
-  const chatHistory: ChatHistory[] = [
+  const chatHistory: ChatHistory[] = propsChats || [
     { id: 'chat-1', title: 'Quantum computing basics', timestamp: '10:30 AM' },
     { id: 'chat-2', title: 'React hooks optimization', timestamp: '9:45 AM' },
     { id: 'chat-3', title: 'Database schema design', timestamp: 'Yesterday' },
@@ -62,14 +84,36 @@ export function LeftSidebar({ collapsed, onToggle, onHoverChange }: LeftSidebarP
     { id: 'chat-6', title: 'Performance optimization', timestamp: '3 days ago' }
   ]
 
+  const selectedProject = propsSelectedProject ?? 'default'
+  const selectedChat = propsSelectedChat ?? 'chat-1'
+
+  const setSelectedProject = propsOnProjectSelect || (() => {})
+  const setSelectedChat = propsOnChatSelect || (() => {})
+
   const handleMouseEnter = () => {
     setIsHovered(true)
     onHoverChange?.(true)
   }
 
   const handleMouseLeave = () => {
-    setIsHovered(false)
-    onHoverChange?.(false)
+    // Don't collapse if profile dropdown is open
+    if (!isProfileDropdownOpen) {
+      setIsHovered(false)
+      onHoverChange?.(false)
+    }
+  }
+
+  const handleProfileDropdownOpenChange = (open: boolean) => {
+    setIsProfileDropdownOpen(open)
+    if (open) {
+      setIsHovered(true)
+      onHoverChange?.(true)
+    } else {
+      // Only collapse if not hovering
+      if (!isHovered) {
+        onHoverChange?.(false)
+      }
+    }
   }
 
   return (
@@ -92,16 +136,35 @@ export function LeftSidebar({ collapsed, onToggle, onHoverChange }: LeftSidebarP
           transition: 'width 300ms ease-in-out'
         }}
       >
-      <SidebarHeader className="p-4 flex items-center justify-center border-b border-[#1a1a1a] relative w-full">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ position: 'relative', transition: 'none' }}>
-          <Image 
-            src="/ZplitGPT.svg" 
-            alt="ZplitGPT Logo" 
-            width={32} 
-            height={32} 
-            className="w-full h-full object-contain"
-            style={{ transition: 'none', position: 'relative' }}
-          />
+      <SidebarHeader className="p-4 border-b border-[#1a1a1a] relative w-full">
+        <div className="flex items-center relative h-8">
+          <div 
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden" 
+            style={{ transition: 'none', position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}
+          >
+            <Image 
+              src="/ZplitGPT.svg" 
+              alt="ZplitGPT Logo" 
+              width={32} 
+              height={32} 
+              className="w-full h-full object-contain"
+              style={{ transition: 'none', position: 'relative' }}
+            />
+          </div>
+          <span 
+            className="text-[#f5f5f5] font-bold text-xl whitespace-nowrap overflow-hidden inline-block"
+            style={{
+              clipPath: isExpanded ? 'inset(0)' : 'inset(0 100% 0 0)',
+              transition: 'clip-path 300ms ease-in-out',
+              marginLeft: '60px',
+              position: 'absolute',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 10
+            }}
+          >
+            ZplitGPT
+          </span>
         </div>
       </SidebarHeader>
 
@@ -137,6 +200,10 @@ export function LeftSidebar({ collapsed, onToggle, onHoverChange }: LeftSidebarP
                 size="sm"
                 className="text-[#b3b3b3] hover:text-[#ff4f2b] hover:bg-[#151515] p-1 h-auto flex-shrink-0"
                 style={{ transition: 'none', position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)' }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onProjectCreate?.('New Project')
+                }}
               >
                 <Plus className="w-3 h-3 flex-shrink-0" style={{ transition: 'none', position: 'relative' }} />
               </Button>
@@ -248,6 +315,10 @@ export function LeftSidebar({ collapsed, onToggle, onHoverChange }: LeftSidebarP
                 size="sm"
                 className="text-[#b3b3b3] hover:text-[#ff4f2b] hover:bg-[#151515] p-1 h-auto flex-shrink-0"
                 style={{ transition: 'none', position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)' }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onChatCreate?.()
+                }}
               >
                 <Plus className="w-3 h-3 flex-shrink-0" style={{ transition: 'none', position: 'relative' }} />
               </Button>
@@ -328,47 +399,60 @@ export function LeftSidebar({ collapsed, onToggle, onHoverChange }: LeftSidebarP
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarSeparator className="bg-[#1a1a1a]" />
-
-      <SidebarFooter className="p-4 relative">
-        <div className="flex items-center justify-between relative">
-          <div className="flex items-center gap-2 relative">
-            {vaultLocked ? (
-              <Lock className="w-4 h-4 text-[#ff4f2b] flex-shrink-0" style={{ transition: 'none', position: 'absolute', left: '0px', top: '50%', transform: 'translateY(-50%)' }} />
-            ) : (
-              <Unlock className="w-4 h-4 text-[#4aff4a] flex-shrink-0" style={{ transition: 'none', position: 'absolute', left: '0px', top: '50%', transform: 'translateY(-50%)' }} />
-            )}
-            <span 
-              className="text-[#b3b3b3] text-sm whitespace-nowrap overflow-hidden inline-block"
-              style={{
-                clipPath: isExpanded ? 'inset(0)' : 'inset(0 100% 0 0)',
-                transition: 'clip-path 300ms ease-in-out',
-                marginLeft: '24px'
-              }}
-            >
-              {vaultLocked ? 'Locked' : 'Unlocked'}
-            </span>
-          </div>
-          {isExpanded && (
-            <Switch
-              checked={!vaultLocked}
-              onCheckedChange={(checked) => setVaultLocked(!checked)}
-              style={{ transition: 'none', position: 'absolute', right: '0px', top: '50%', transform: 'translateY(-50%)' }}
-            />
-          )}
-        </div>
-        {isExpanded && (
-          <p 
-            className="text-[#666666] text-xs mt-2 whitespace-nowrap overflow-hidden inline-block"
+      {/* Help Icon */}
+      <div className="p-4 border-t border-[#1a1a1a]">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] p-3 h-auto relative"
+        >
+          <HelpCircle 
+            className="w-5 h-5 flex-shrink-0" 
+            style={{ transition: 'none', position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} 
+          />
+          <span
+            className="whitespace-nowrap overflow-hidden inline-block ml-8"
             style={{
               clipPath: isExpanded ? 'inset(0)' : 'inset(0 100% 0 0)',
               transition: 'clip-path 300ms ease-in-out'
             }}
           >
-            Keys encrypted locally
-          </p>
+            Help
+          </span>
+        </Button>
+      </div>
+
+      {/* User Profile */}
+      <div className="p-4 border-t border-[#1a1a1a]">
+        {isExpanded ? (
+          <div
+            style={{
+              clipPath: isExpanded ? 'inset(0)' : 'inset(0 100% 0 0)',
+              transition: 'clip-path 300ms ease-in-out'
+            }}
+          >
+            <ProfileDropdown 
+              className="w-full" 
+              onOpenChange={handleProfileDropdownOpenChange}
+            />
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <ProfileDropdown 
+              className="w-auto"
+              collapsed={true}
+              onOpenChange={handleProfileDropdownOpenChange}
+              data={{
+                name: "Eugene An",
+                email: "eugene@kokonutui.com",
+                avatar: "/Demo avatar/Avatar.webP",
+                subscription: "PRO",
+                model: "Gemini 2.0 Flash"
+              }}
+            />
+          </div>
         )}
-      </SidebarFooter>
+      </div>
     </Sidebar>
     </div>
   )

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Settings, CreditCard, FileText, LogOut, User } from "lucide-react";
+import { Settings, CreditCard, FileText, LogOut, User, Tag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -12,7 +12,6 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import Gemini from "../icons/gemini";
 
 interface Profile {
     name: string;
@@ -33,7 +32,7 @@ interface MenuItem {
 const SAMPLE_PROFILE_DATA: Profile = {
     name: "Eugene An",
     email: "eugene@kokonutui.com",
-    avatar: "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/profile-mjss82WnWBRO86MHHGxvJ2TVZuyrDv.jpeg",
+    avatar: "/Demo avatar/Avatar.webP",
     subscription: "PRO",
     model: "Gemini 2.0 Flash",
 };
@@ -41,14 +40,23 @@ const SAMPLE_PROFILE_DATA: Profile = {
 interface ProfileDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
     data?: Profile;
     showTopbar?: boolean;
+    collapsed?: boolean;
+    onOpenChange?: (isOpen: boolean) => void;
 }
 
 export default function ProfileDropdown({
     data = SAMPLE_PROFILE_DATA,
     className,
+    collapsed = false,
+    onOpenChange,
     ...props
 }: ProfileDropdownProps) {
     const [isOpen, setIsOpen] = React.useState(false);
+
+    const handleOpenChange = (open: boolean) => {
+        setIsOpen(open);
+        onOpenChange?.(open);
+    };
     const menuItems: MenuItem[] = [
         {
             label: "Profile",
@@ -56,10 +64,10 @@ export default function ProfileDropdown({
             icon: <User className="w-4 h-4" />,
         },
         {
-            label: "Model",
-            value: data.model,
+            label: "Version",
+            value: "0.0.5 Beta",
             href: "#",
-            icon: <Gemini className="w-4 h-4" />,
+            icon: <Tag className="w-4 h-4" />,
         },
         {
             label: "Subscription",
@@ -82,22 +90,32 @@ export default function ProfileDropdown({
 
     return (
         <div className={cn("relative", className)} {...props}>
-            <DropdownMenu onOpenChange={setIsOpen}>
-                <div className="group relative">
+            <DropdownMenu onOpenChange={handleOpenChange}>
+                <div className="group relative" style={{ minHeight: '40px', position: 'relative' }}>
                     <DropdownMenuTrigger asChild>
                         <button
                             type="button"
-                            className="flex items-center gap-16 p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/60 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 hover:shadow-sm transition-all duration-200 focus:outline-none"
+                            className={cn(
+                                "flex items-center relative rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/60 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 hover:shadow-sm focus:outline-none w-full h-10",
+                                collapsed ? "p-0.5" : "p-3"
+                            )}
+                            style={{
+                                transition: 'width 300ms ease-in-out, padding 300ms ease-in-out',
+                                width: collapsed ? '40px' : '100%'
+                            }}
                         >
-                            <div className="text-left flex-1">
-                                <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight">
-                                    {data.name}
-                                </div>
-                                <div className="text-xs text-zinc-500 dark:text-zinc-400 tracking-tight leading-tight">
-                                    {data.email}
-                                </div>
-                            </div>
-                            <div className="relative">
+                            {/* Avatar - Always visible, positioned like Chat icon - NEVER MOVES OR ANIMATES */}
+                            <div 
+                                className="relative flex-shrink-0 pointer-events-none" 
+                                style={{ 
+                                    transition: 'none',
+                                    position: 'absolute',
+                                    left: '8px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    zIndex: 10
+                                }}
+                            >
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-0.5">
                                     <div className="w-full h-full rounded-full overflow-hidden bg-white dark:bg-zinc-900">
                                         <Image
@@ -110,18 +128,37 @@ export default function ProfileDropdown({
                                     </div>
                                 </div>
                             </div>
+                            {/* First Name - Fade in from left, fade out to right - Same z-axis as avatar */}
+                            <span 
+                                className="text-sm font-medium text-zinc-900 dark:text-zinc-100 tracking-tight leading-tight whitespace-nowrap overflow-hidden inline-block pointer-events-none"
+                                style={{
+                                    marginLeft: '52px',
+                                    position: 'absolute',
+                                    left: '0',
+                                    top: '50%',
+                                    transform: collapsed 
+                                        ? 'translateY(-50%) translateX(10px)' 
+                                        : 'translateY(-50%) translateX(0)',
+                                    opacity: collapsed ? 0 : 1,
+                                    transition: 'opacity 300ms ease-in-out, transform 300ms ease-in-out',
+                                    zIndex: 10
+                                }}
+                            >
+                                {data.name.split(' ')[0]}
+                            </span>
                         </button>
                     </DropdownMenuTrigger>
 
                     {/* Bending line indicator on the right */}
-                    <div
-                        className={cn(
-                            "absolute -right-3 top-1/2 -translate-y-1/2 transition-all duration-200",
-                            isOpen
-                                ? "opacity-100"
-                                : "opacity-60 group-hover:opacity-100"
-                        )}
-                    >
+                    {!collapsed && (
+                        <div
+                            className={cn(
+                                "absolute -right-3 top-1/2 -translate-y-1/2 transition-all duration-200",
+                                isOpen
+                                    ? "opacity-100"
+                                    : "opacity-60 group-hover:opacity-100"
+                            )}
+                        >
                         <svg
                             width="12"
                             height="24"
@@ -144,6 +181,7 @@ export default function ProfileDropdown({
                             />
                         </svg>
                     </div>
+                    )}
 
                     <DropdownMenuContent
                         align="end"
@@ -169,7 +207,7 @@ export default function ProfileDropdown({
                                                 <span
                                                     className={cn(
                                                         "text-xs font-medium rounded-md py-1 px-2 tracking-tight",
-                                                        item.label === "Model"
+                                                        item.label === "Version"
                                                             ? "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10 border border-blue-500/10"
                                                             : "text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-500/10 border border-purple-500/10"
                                                     )}

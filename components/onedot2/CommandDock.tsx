@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Save, Settings, X, Edit2, Check, ChevronDown } from 'lucide-react'
+import { Save, Settings, X, Edit2, Check, ChevronDown, Database } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -97,7 +97,10 @@ export function CommandDock({
         className="px-4 py-3 flex items-center justify-between hover:bg-[#0a0a0a]/50 transition-colors cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className="text-[#b3b3b3] text-sm font-medium">System Context</span>
+        <div className="flex items-center gap-2">
+          <Database className="w-4 h-4 text-[#ff4f2b]" />
+          <span className="text-[#b3b3b3] text-sm font-medium">System Context</span>
+        </div>
         <Button
           onClick={(e) => {
             e.stopPropagation()
@@ -107,7 +110,7 @@ export function CommandDock({
           size="sm"
           className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] h-7"
         >
-          <ChevronDown className={cn("w-3 h-3 transition-transform duration-200", isOpen ? "rotate-180" : "")} />
+          <ChevronDown className={cn("w-3 h-3 transition-all duration-200", isOpen ? "rotate-180 text-[#ff4f2b]" : "text-[#b3b3b3]")} />
         </Button>
       </div>
 
@@ -143,7 +146,7 @@ export function CommandDock({
                 value={context}
                 onChange={(e) => handleContextChange(e.target.value)}
                 placeholder="Define system context or instructions for all models..."
-                className="w-full bg-[#000000] border-[#1a1a1a] text-[#f5f5f5] placeholder-[#666666] resize-none focus:border-[#ff4f2b] focus:ring-[#ff4f2b] transition-all duration-200 min-h-[60px] max-h-[120px] rounded-lg"
+                className="w-full bg-[#000000] border-[#1a1a1a] text-[#f5f5f5] placeholder-[#666666] resize-none focus:border-[#ff4f2b] focus:ring-[#ff4f2b] transition-all duration-200 min-h-[60px] max-h-[120px] rounded-lg text-sm font-mono"
                 style={{
                   overflow: 'hidden'
                 }}

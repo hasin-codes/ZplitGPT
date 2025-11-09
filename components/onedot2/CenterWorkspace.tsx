@@ -1,27 +1,15 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Timer, Coins, Copy, Diff, Download } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { DiffModal } from './DiffModal'
+import { ModelColumn, ModelResponse } from './ModelColumn'
 
 interface CenterWorkspaceProps {
   leftCollapsed: boolean
   activeModels: string[]
 }
 
-interface ModelResponse {
-  id: string
-  version: string
-  content: string
-  timestamp: string
-  latency: number
-  tokens: number
-}
-
-interface ModelColumn {
+interface ModelColumnData {
   id: string
   name: string
   color: string
@@ -30,7 +18,7 @@ interface ModelColumn {
 
 export function CenterWorkspace({ leftCollapsed, activeModels }: CenterWorkspaceProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const [models, setModels] = useState<ModelColumn[]>([
+  const [models, setModels] = useState<ModelColumnData[]>([
     {
       id: 'mixtral-8x7b',
       name: 'Groq Mixtral 8x7B',
@@ -455,17 +443,19 @@ We are witnessing the dawn of the quantum era.`,
 
   const [diffModal, setDiffModal] = useState<{
     isOpen: boolean
-    model1Name: string
-    model2Name: string
-    content1: string
-    content2: string
+    models: Array<{
+      id: string
+      name: string
+      color: string
+      content: string
+    }>
   }>({
     isOpen: false,
-    model1Name: '',
-    model2Name: '',
-    content1: '',
-    content2: ''
+    models: []
   })
+
+  // Track custom widths for each model column
+  const [customWidths, setCustomWidths] = useState<Record<string, number>>({})
 
   const addNewVersion = (modelId: string) => {
     setModels(prev => prev.map(model => {
@@ -496,37 +486,67 @@ We are witnessing the dawn of the quantum era.`,
     })
   }
 
+  const handleVersionChange = (modelId: string, version: string) => {
+    setActiveVersions(prev => ({
+      ...prev,
+      [modelId]: version
+    }))
+  }
+
   const openDiffModal = (modelId: string) => {
-    const model = models.find(m => m.id === modelId)
-    const otherModel = models.find(m => m.id !== modelId)
+    // Get all active models (all models that are currently selected/visible)
+    const activeModelsList = models.filter(model => activeModels.includes(model.id))
     
-    if (model && otherModel) {
-      const activeResponse = model.responses.find(r => r.version === activeVersions[modelId])
-      const otherActiveResponse = otherModel.responses.find(r => r.version === activeVersions[otherModel.id])
+    if (activeModelsList.length === 0) return
+    
+    // Get active responses for all active models
+    const comparisonModels = activeModelsList.map(model => {
+      const activeVersion = activeVersions[model.id] || model.responses[0]?.version || 'v1'
+      const activeResponse = model.responses.find(r => r.version === activeVersion) || model.responses[0]
       
-      if (activeResponse && otherActiveResponse) {
-        setDiffModal({
-          isOpen: true,
-          model1Name: model.name,
-          model2Name: otherModel.name,
-          content1: activeResponse.content,
-          content2: otherActiveResponse.content
-        })
+      return {
+        id: model.id,
+        name: model.name,
+        color: model.color,
+        content: activeResponse?.content || ''
       }
+    }).filter(m => m.content) // Only include models with content
+    
+    if (comparisonModels.length > 0) {
+      setDiffModal({
+        isOpen: true,
+        models: comparisonModels
+      })
     }
   }
 
   const activeModelsList = models.filter(model => activeModels.includes(model.id))
   const activeCount = activeModelsList.length
   
-  // Calculate width: if 2 or less, full width; if 3+, show 3 full + peek of 4th
-  const getColumnWidth = () => {
+  // Calculate default width: if 2 or less, full width; if 3+, show 3 full + peek of 4th
+  const getDefaultColumnWidth = () => {
     if (activeCount <= 2) {
       return `${100 / activeCount}%`
     } else {
       // Show 3 full columns + a bit of 4th (approximately 3.2 columns visible)
       return `${100 / 3.2}%`
     }
+  }
+
+  // Get actual width for a model (custom or default)
+  const getColumnWidth = (modelId: string) => {
+    if (customWidths[modelId]) {
+      return `${customWidths[modelId]}px`
+    }
+    return getDefaultColumnWidth()
+  }
+
+  // Handle width change
+  const handleWidthChange = (modelId: string, newWidth: number) => {
+    setCustomWidths(prev => ({
+      ...prev,
+      [modelId]: newWidth
+    }))
   }
 
   // Handle smooth scroll snapping one model at a time
@@ -636,126 +656,27 @@ We are witnessing the dawn of the quantum era.`,
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: '#333333 #0a0a0a',
-          scrollBehavior: 'smooth'
+          scrollBehavior: 'smooth',
+          userSelect: 'none'
         }}
       >
         {activeModelsList.map((model) => (
-          <div
+          <ModelColumn
             key={model.id}
-            className="flex-shrink-0 flex flex-col border-r border-[#1a1a1a]"
-            style={{
-              width: getColumnWidth(),
-              minWidth: activeCount <= 2 ? '50%' : '400px',
-              maxWidth: activeCount <= 2 ? 'none' : '800px'
-            }}
-          >
-            {/* Header */}
-            <div 
-              className="bg-[#111111] p-4 border-b-2"
-              style={{ borderColor: model.color }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: model.color }}
-                  />
-                  <h3 className="text-[#f5f5f5] font-medium">{model.name}</h3>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-[#b3b3b3]">
-                  <div className="flex items-center gap-1">
-                    <Timer className="w-3 h-3" />
-                    <span>{model.responses[0]?.latency.toFixed(1)}s</span>
-                  </div>
-                  <span className="text-[#666666]">·</span>
-                  <div className="flex items-center gap-1">
-                    <Coins className="w-3 h-3" />
-                    <span>{model.responses[0]?.tokens} tokens</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Version Tabs */}
-            <div className="bg-[#0a0a0a] px-4 py-2 border-b border-[#1a1a1a]">
-              <div className="flex gap-2 flex-wrap">
-                {model.responses.map((response) => (
-                  <button
-                    key={response.id}
-                    onClick={() => setActiveVersions(prev => ({
-                      ...prev,
-                      [model.id]: response.version
-                    }))}
-                    className={`px-3 py-1 rounded-full text-xs transition-all ${
-                      activeVersions[model.id] === response.version
-                        ? 'bg-[#ff4f2b] text-white'
-                        : 'bg-[#1a1a1a] text-[#b3b3b3] hover:text-[#f5f5f5]'
-                    }`}
-                    style={{
-                      backgroundColor: activeVersions[model.id] === response.version ? model.color : undefined
-                    }}
-                  >
-                    {response.version}
-                  </button>
-                ))}
-                <button
-                  onClick={() => addNewVersion(model.id)}
-                  className="px-3 py-1 rounded-full text-xs bg-[#2a2a2a] text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#3a3a3a] transition-all"
-                >
-                  + New
-                </button>
-              </div>
-            </div>
-
-            {/* Response Body */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {model.responses
-                .filter(response => response.version === activeVersions[model.id])
-                .map(response => (
-                  <div key={response.id} className="space-y-4">
-                    <div className="prose prose-invert max-w-none">
-                      <div 
-                        className="text-[#f5f5f5] whitespace-pre-wrap font-mono text-sm leading-relaxed"
-                        dangerouslySetInnerHTML={{ 
-                          __html: response.content
-                            .replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold text-[#f5f5f5] mb-3">$1</h1>')
-                            .replace(/^## (.*$)/gim, '<h2 class="text-lg font-semibold text-[#f5f5f5] mb-2">$1</h2>')
-                            .replace(/^### (.*$)/gim, '<h3 class="text-base font-medium text-[#f5f5f5] mb-2">$1</h3>')
-                            .replace(/\*\*(.*)\*\*/gim, '<strong class="text-[#f5f5f5]">$1</strong>')
-                            .replace(/\*(.*)\*/gim, '<em class="text-[#b3b3b3]">$1</em>')
-                            .replace(/^- (.*$)/gim, '<li class="text-[#b3b3b3] ml-4">$1</li>')
-                            .replace(/^\d+\. (.*$)/gim, '<li class="text-[#b3b3b3] ml-4 list-decimal">$1</li>')
-                            .replace(/`([^`]+)`/gim, '<code class="bg-[#1a1a1a] text-[#ff4f2b] px-1 py-0.5 rounded text-xs">$1</code>')
-                            .replace(/\n\n/gim, '</p><p class="mb-4">')
-                            .replace(/^(.)/gim, '<p class="mb-4">$1')
-                        }}
-                      />
-                    </div>
-
-                    {/* Inline Actions */}
-                    <div className="flex items-center gap-2 pt-4 border-t border-[#1a1a1a]">
-                      <Button variant="ghost" size="sm" className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a]">
-                        <Copy className="w-3 h-3 mr-1" />
-                        Copy
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a]"
-                        onClick={() => openDiffModal(model.id)}
-                      >
-                        <Diff className="w-3 h-3 mr-1" />
-                        Diff
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a]">
-                        <Download className="w-3 h-3 mr-1" />
-                        Export
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
+            id={model.id}
+            name={model.name}
+            color={model.color}
+            responses={model.responses}
+            activeVersion={activeVersions[model.id] || 'v1'}
+            onVersionChange={(version) => handleVersionChange(model.id, version)}
+            onAddVersion={() => addNewVersion(model.id)}
+            onOpenDiff={() => openDiffModal(model.id)}
+            width={getColumnWidth(model.id)}
+            minWidth={activeCount <= 2 ? '50%' : '400px'}
+            maxWidth={activeCount <= 2 ? 'none' : '800px'}
+            defaultWidth={getDefaultColumnWidth()}
+            onWidthChange={handleWidthChange}
+          />
         ))}
       </div>
 
@@ -763,10 +684,7 @@ We are witnessing the dawn of the quantum era.`,
       <DiffModal
         isOpen={diffModal.isOpen}
         onClose={() => setDiffModal(prev => ({ ...prev, isOpen: false }))}
-        model1Name={diffModal.model1Name}
-        model2Name={diffModal.model2Name}
-        content1={diffModal.content1}
-        content2={diffModal.content2}
+        models={diffModal.models}
       />
     </div>
   )

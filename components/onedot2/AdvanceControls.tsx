@@ -73,7 +73,7 @@ export function AdvanceControls() {
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4 text-[#b3b3b3]" />
+          <SlidersHorizontal className="w-4 h-4 text-[#ff4f2b]" />
           <span className="text-[#b3b3b3] text-sm font-medium">Advance Controls</span>
         </div>
         <Button
@@ -85,7 +85,7 @@ export function AdvanceControls() {
           size="sm"
           className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] h-7"
         >
-          <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-3 h-3 transition-all duration-200 ${isOpen ? 'rotate-180 text-[#ff4f2b]' : 'text-[#b3b3b3]'}`} />
         </Button>
       </div>
 
@@ -100,21 +100,6 @@ export function AdvanceControls() {
         }}
       >
           <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-[#b3b3b3]" />
-                <span className="text-[#f5f5f5] text-sm font-semibold">Advance Controls</span>
-              </div>
-              <Button
-                onClick={() => setIsOpen(false)}
-                variant="ghost"
-                size="sm"
-                className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] h-7"
-              >
-                <X className="w-3 h-3" />
-              </Button>
-            </div>
-
             <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2">
               {/* Model Parameters */}
               <div className="space-y-1">
@@ -146,7 +131,7 @@ export function AdvanceControls() {
                           type="number"
                           value={maxTokens[0]}
                           onChange={(e) => setMaxTokens([parseInt(e.target.value) || 0])}
-                          className="w-20 h-6 text-xs bg-[#1a1a1a] border-[#333333] text-[#f5f5f5]"
+                          className="w-20 h-6 text-xs bg-[#1a1a1a] border-[#333333] text-[#f5f5f5] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
                         />
                       </div>
                       <Slider
