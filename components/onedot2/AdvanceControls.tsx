@@ -83,21 +83,18 @@ export function AdvanceControls() {
           }}
           variant="ghost"
           size="sm"
-          className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] h-7"
+          className="h-[30px] w-[30px] p-0 text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a]"
         >
-          <ChevronDown className={`w-3 h-3 transition-all duration-200 ${isOpen ? 'rotate-180 text-[#ff4f2b]' : 'text-[#b3b3b3]'}`} />
+          <ChevronDown className={`h-4 w-4 transition-all duration-200 ${isOpen ? 'rotate-180 text-[#ff4f2b]' : 'text-[#b3b3b3]'}`} />
         </Button>
       </div>
 
       {/* Dropdown Panel - Overlays CenterWorkspace */}
       <div 
         className={cn(
-          "absolute top-full left-0 right-0 bg-[#0a0a0a] border-b border-[#1a1a1a] shadow-2xl z-[9999] overflow-hidden transition-all duration-300 ease-in-out",
+          "absolute top-full left-0 right-0 bg-[#0a0a0a] border-b border-[#1a1a1a] z-[9999] overflow-hidden transition-all duration-300 ease-in-out",
           isOpen ? "max-h-[80vh] opacity-100" : "max-h-0 opacity-0"
         )}
-        style={{
-          boxShadow: isOpen ? '0 10px 40px rgba(0, 0, 0, 0.8)' : 'none'
-        }}
       >
           <div className="p-4">
             <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2">

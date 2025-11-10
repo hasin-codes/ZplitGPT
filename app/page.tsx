@@ -1,9 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CommandDock } from '@/components/onedot2/CommandDock'
-import { AdvanceControls } from '@/components/onedot2/AdvanceControls'
-import { ModelBrandSelector } from '@/components/onedot2/ModelBrandSelector'
+import { TopBar } from '@/components/onedot2/TopBar'
 import { LeftSidebar, Project, ChatHistory } from '@/components/onedot2/LeftSidebar'
 import { CenterWorkspace } from '@/components/onedot2/CenterWorkspace'
 import { AIInput } from '@/components/onedot2/AIInput'
@@ -120,19 +118,10 @@ export default function Home() {
           right: '0px'
         }}
       >
-        <div className="flex w-full">
-          <div className="w-1/2 border-r border-[#1a1a1a]">
-            <CommandDock
-              context={context}
-              onContextChange={setContext}
-              onSaveContext={handleSaveContext}
-            />
-          </div>
-          <div className="w-1/2">
-            <AdvanceControls />
-          </div>
-        </div>
-        <ModelBrandSelector
+        <TopBar
+          context={context}
+          onContextChange={setContext}
+          onSaveContext={handleSaveContext}
           activeModels={activeModels}
           onModelToggle={handleModelToggle}
         />

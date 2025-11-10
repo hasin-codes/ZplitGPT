@@ -101,14 +101,18 @@ export function ModelColumn({
         const startContainer = range.startContainer
         const endContainer = range.endContainer
 
-        // Get the column elements
-        const startColumn = (startContainer.nodeType === Node.TEXT_NODE 
-          ? startContainer.parentElement?.closest('[data-model-column]')
-          : (startContainer as Element)?.closest('[data-model-column]')) as HTMLElement
+        // Get the column elements - safely handle different node types
+        const getColumnElement = (node: Node): HTMLElement | null => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            return node.parentElement?.closest('[data-model-column]') as HTMLElement || null
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            return (node as Element).closest('[data-model-column]') as HTMLElement || null
+          }
+          return null
+        }
 
-        const endColumn = (endContainer.nodeType === Node.TEXT_NODE 
-          ? endContainer.parentElement?.closest('[data-model-column]')
-          : (endContainer as Element)?.closest('[data-model-column]')) as HTMLElement
+        const startColumn = getColumnElement(startContainer)
+        const endColumn = getColumnElement(endContainer)
 
         // If selection spans multiple columns, clear it
         if (startColumn && endColumn && startColumn !== endColumn) {
