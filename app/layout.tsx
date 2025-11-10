@@ -19,14 +19,14 @@ export const metadata: Metadata = {
   keywords: ["Zplitgpt", "AI", "LLM", "Comparison", "Development", "React"],
   authors: [{ name: "Zplitgpt Team" }],
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
+    icon: "/ZplitGPT.png",
+    shortcut: "/ZplitGPT.png",
     apple: "/ZplitGPT.png",
   },
   openGraph: {
     title: "Zplitgpt - AI Comparison Environment",
     description: "Advanced AI comparison environment for developers and enthusiasts",
-    url: "https://chat.z.ai",
+    url: "https://zplitgpt.vercel.app",
     siteName: "Zplitgpt",
     type: "website",
     images: [
