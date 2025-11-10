@@ -454,9 +454,6 @@ We are witnessing the dawn of the quantum era.`,
     models: []
   })
 
-  // Track custom widths for each model column
-  const [customWidths, setCustomWidths] = useState<Record<string, number>>({})
-
   const addNewVersion = (modelId: string) => {
     setModels(prev => prev.map(model => {
       if (model.id === modelId) {
@@ -523,30 +520,14 @@ We are witnessing the dawn of the quantum era.`,
   const activeModelsList = models.filter(model => activeModels.includes(model.id))
   const activeCount = activeModelsList.length
   
-  // Calculate default width: if 2 or less, full width; if 3+, show 3 full + peek of 4th
-  const getDefaultColumnWidth = () => {
+  // Calculate column width: if 2 or less, full width; if 3+, show 3 full + peek of 4th
+  const getColumnWidth = () => {
     if (activeCount <= 2) {
       return `${100 / activeCount}%`
     } else {
       // Show 3 full columns + a bit of 4th (approximately 3.2 columns visible)
       return `${100 / 3.2}%`
     }
-  }
-
-  // Get actual width for a model (custom or default)
-  const getColumnWidth = (modelId: string) => {
-    if (customWidths[modelId]) {
-      return `${customWidths[modelId]}px`
-    }
-    return getDefaultColumnWidth()
-  }
-
-  // Handle width change
-  const handleWidthChange = (modelId: string, newWidth: number) => {
-    setCustomWidths(prev => ({
-      ...prev,
-      [modelId]: newWidth
-    }))
   }
 
   // Handle smooth scroll snapping one model at a time
@@ -657,7 +638,9 @@ We are witnessing the dawn of the quantum era.`,
           scrollbarWidth: 'thin',
           scrollbarColor: '#333333 #0a0a0a',
           scrollBehavior: 'smooth',
-          userSelect: 'none'
+          userSelect: 'none',
+          padding: '12px',
+          gap: '12px'
         }}
       >
         {activeModelsList.map((model) => (
@@ -671,11 +654,7 @@ We are witnessing the dawn of the quantum era.`,
             onVersionChange={(version) => handleVersionChange(model.id, version)}
             onAddVersion={() => addNewVersion(model.id)}
             onOpenDiff={() => openDiffModal(model.id)}
-            width={getColumnWidth(model.id)}
-            minWidth={activeCount <= 2 ? '50%' : '400px'}
-            maxWidth={activeCount <= 2 ? 'none' : '800px'}
-            defaultWidth={getDefaultColumnWidth()}
-            onWidthChange={handleWidthChange}
+            width={getColumnWidth()}
           />
         ))}
       </div>

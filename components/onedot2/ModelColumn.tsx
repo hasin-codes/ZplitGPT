@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Timer, Coins, Copy, Diff, Download, GripVertical } from 'lucide-react'
+import { Timer, Coins, Copy, Diff, Download, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export interface ModelResponse {
@@ -23,10 +23,6 @@ interface ModelColumnProps {
   onAddVersion: () => void
   onOpenDiff: () => void
   width: string
-  minWidth: string
-  maxWidth: string
-  defaultWidth: string
-  onWidthChange: (modelId: string, newWidth: number) => void
 }
 
 export function ModelColumn({
@@ -38,11 +34,7 @@ export function ModelColumn({
   onVersionChange,
   onAddVersion,
   onOpenDiff,
-  width,
-  minWidth,
-  maxWidth,
-  defaultWidth,
-  onWidthChange
+  width
 }: ModelColumnProps) {
   const activeResponse = responses.find(r => r.version === activeVersion) || responses[0]
   const displayLatency = activeResponse?.latency || 0
@@ -50,31 +42,7 @@ export function ModelColumn({
   const columnRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const selectionStartRef = useRef<{ column: string; timestamp: number } | null>(null)
-  const resizeHandleRef = useRef<HTMLDivElement>(null)
-  const headerRef = useRef<HTMLDivElement>(null)
-  const versionTabsRef = useRef<HTMLDivElement>(null)
-  const [isResizing, setIsResizing] = useState(false)
-  const [showSnapIndicator, setShowSnapIndicator] = useState(false)
-  const [isSnapping, setIsSnapping] = useState(false)
-  const [isHoveringResizeArea, setIsHoveringResizeArea] = useState(false)
-  const [resizeHandleHeight, setResizeHandleHeight] = useState(0)
-  const startXRef = useRef<number>(0)
-  const startWidthRef = useRef<number>(0)
-  const defaultWidthPxRef = useRef<number>(0)
-
-  // Calculate resize handle height based on header and version tabs
-  useEffect(() => {
-    const updateHeight = () => {
-      if (headerRef.current && versionTabsRef.current) {
-        const totalHeight = headerRef.current.offsetHeight + versionTabsRef.current.offsetHeight
-        setResizeHandleHeight(totalHeight)
-      }
-    }
-    
-    updateHeight()
-    window.addEventListener('resize', updateHeight)
-    return () => window.removeEventListener('resize', updateHeight)
-  }, [])
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 
   // Prevent selection from crossing column boundaries
   useEffect(() => {
@@ -162,192 +130,90 @@ export function ModelColumn({
     }
   }, [id])
 
-  // Calculate default width in pixels
+  // Handle scroll to bottom button visibility
   useEffect(() => {
-    const calculateDefaultWidth = () => {
-      if (columnRef.current) {
-        const parent = columnRef.current.parentElement
-        if (parent) {
-          const parentWidth = parent.clientWidth
-          // Parse defaultWidth (could be percentage or pixel value)
-          if (defaultWidth.includes('%')) {
-            const percentage = parseFloat(defaultWidth) / 100
-            defaultWidthPxRef.current = parentWidth * percentage
-          } else if (defaultWidth.includes('px')) {
-            defaultWidthPxRef.current = parseFloat(defaultWidth)
-          }
-        }
-      }
+    const content = contentRef.current
+    if (!content) return
+
+    const checkScrollPosition = () => {
+      const { scrollTop, scrollHeight, clientHeight } = content
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 10 // 10px threshold
+      setShowScrollToBottom(!isAtBottom)
     }
 
-    calculateDefaultWidth()
+    // Check initial state
+    checkScrollPosition()
+
+    // Listen to scroll events
+    content.addEventListener('scroll', checkScrollPosition)
     
-    // Recalculate on window resize
-    window.addEventListener('resize', calculateDefaultWidth)
-    return () => window.removeEventListener('resize', calculateDefaultWidth)
-  }, [defaultWidth])
-
-  // Resize functionality
-  useEffect(() => {
-    const handle = resizeHandleRef.current
-    const header = headerRef.current
-    const versionTabs = versionTabsRef.current
-    if (!handle || !columnRef.current || !header || !versionTabs) return
-
-    let isResizingLocal = false
-
-    const handleMouseDown = (e: MouseEvent) => {
-      // Only allow resize if clicking on the resize handle or in the header/version tabs area
-      const target = e.target as HTMLElement
-      const isInResizeArea = header.contains(target) || versionTabs.contains(target) || handle.contains(target)
-      
-      if (!isInResizeArea) return
-      
-      // Check if click is near the right edge (within 8px) when clicking in header/version tabs
-      if (!handle.contains(target)) {
-        const rect = columnRef.current!.getBoundingClientRect()
-        const clickX = e.clientX
-        const distanceFromRight = rect.right - clickX
-        
-        if (distanceFromRight > 8) return // Not close enough to the edge
-      }
-      
-      e.preventDefault()
-      e.stopPropagation()
-      isResizingLocal = true
-      setIsResizing(true)
-      startXRef.current = e.clientX
-      startWidthRef.current = columnRef.current!.offsetWidth
-      document.body.style.cursor = 'col-resize'
-      document.body.style.userSelect = 'none'
-    }
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizingLocal || !columnRef.current) return
-
-      const deltaX = e.clientX - startXRef.current
-      const newWidth = startWidthRef.current + deltaX
-      const minWidthPx = parseFloat(minWidth) || 300
-      const maxWidthPx = maxWidth === 'none' ? Infinity : parseFloat(maxWidth) || 800
-
-      // Clamp width
-      const clampedWidth = Math.max(minWidthPx, Math.min(newWidth, maxWidthPx))
-      
-      // Check if close to default width (within 20px threshold)
-      const distanceFromDefault = Math.abs(clampedWidth - defaultWidthPxRef.current)
-      const snapThreshold = 20
-
-      if (distanceFromDefault < snapThreshold) {
-        setShowSnapIndicator(true)
-      } else {
-        setShowSnapIndicator(false)
-      }
-
-      onWidthChange(id, clampedWidth)
-    }
-
-    const handleMouseUp = (e: MouseEvent) => {
-      if (!isResizingLocal) return
-
-      const currentWidth = columnRef.current?.offsetWidth || 0
-      const distanceFromDefault = Math.abs(currentWidth - defaultWidthPxRef.current)
-      const snapThreshold = 20
-
-      // If close to default, snap back
-      if (distanceFromDefault < snapThreshold) {
-        setIsSnapping(true)
-        setShowSnapIndicator(true)
-        
-        // Animate to default width
-        onWidthChange(id, defaultWidthPxRef.current)
-        
-        setTimeout(() => {
-          setIsSnapping(false)
-          setShowSnapIndicator(false)
-        }, 300)
-      } else {
-        setShowSnapIndicator(false)
-      }
-
-      isResizingLocal = false
-      setIsResizing(false)
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-    }
-
-    // Add listeners to header and version tabs for easier grabbing
-    header.addEventListener('mousedown', handleMouseDown)
-    versionTabs.addEventListener('mousedown', handleMouseDown)
-    handle.addEventListener('mousedown', handleMouseDown)
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
+    // Also check when content changes
+    const resizeObserver = new ResizeObserver(checkScrollPosition)
+    resizeObserver.observe(content)
 
     return () => {
-      header.removeEventListener('mousedown', handleMouseDown)
-      versionTabs.removeEventListener('mousedown', handleMouseDown)
-      handle.removeEventListener('mousedown', handleMouseDown)
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
+      content.removeEventListener('scroll', checkScrollPosition)
+      resizeObserver.disconnect()
     }
-  }, [id, minWidth, maxWidth, onWidthChange])
+  }, [activeResponse])
+
+  const handleScrollToBottom = () => {
+    const content = contentRef.current
+    if (content) {
+      content.scrollTo({
+        top: content.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+  }
+
+  // Convert hex color to rgba for subtle glow
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+
+  // Neomorphism color theory: Calculate light and shadow from background
+  // For dark theme: light = slightly lighter, shadow = darker
+  // Background: #0a0a0a (very dark)
+  const neomorphicLight = 'rgba(20, 20, 20, 0.3)' // Slightly lighter than background
+  const neomorphicShadow = 'rgba(0, 0, 0, 0.3)' // Darker shadow
+  const neomorphicInsetLight = 'rgba(15, 15, 15, 0.2)' // Subtle inner highlight
+  const neomorphicInsetShadow = 'rgba(5, 5, 5, 0.3)' // Inner shadow
+
+  // Subtle color accent for neomorphic style (very low opacity)
+  const colorAccent = hexToRgba(color, 0.05)
+  const colorAccentInset = hexToRgba(color, 0.02)
 
   return (
     <div
       ref={columnRef}
       data-model-column={id}
-      className={`flex-shrink-0 flex flex-col relative ${isSnapping ? '' : 'border-r border-[#1a1a1a]'}`}
+      className="flex-shrink-0 flex flex-col relative rounded-lg overflow-hidden"
       style={{
         width,
-        minWidth,
-        maxWidth,
         userSelect: 'none',
-        transition: isSnapping ? 'width 300ms ease-out' : 'none',
-        borderRight: isSnapping ? '2px solid #ff4f2b' : undefined,
-        boxShadow: isSnapping ? '0 0 8px rgba(255, 79, 43, 0.5)' : undefined
+        backgroundColor: '#0a0a0a',
+        border: 'none',
+        boxShadow: `
+          /* Outer neomorphic shadows - light source from top-left */
+          2px 2px 4px ${neomorphicShadow},
+          -2px -2px 4px ${neomorphicLight},
+          /* Inner neomorphic shadows */
+          inset 2px 2px 4px ${neomorphicInsetShadow},
+          inset -2px -2px 4px ${neomorphicInsetLight},
+          /* Subtle color accent glow */
+          2px 4px 8px 0 ${colorAccent},
+          inset 0 0 12px 0 ${colorAccentInset}
+        `
       }}
     >
-      {/* Resize Handle - Always present, only visible on header and version tabs area */}
-      <div
-        ref={resizeHandleRef}
-        className="absolute cursor-col-resize z-10 transition-all duration-200"
-        style={{
-          top: 0,
-          right: '0px',
-          height: resizeHandleHeight > 0 ? `${resizeHandleHeight}px` : 'auto',
-          width: '8px',
-          backgroundColor: (isHoveringResizeArea || isResizing || showSnapIndicator)
-            ? (showSnapIndicator 
-                ? '#ff4f2b' 
-                : isResizing 
-                  ? '#ff4f2b60' 
-                  : '#ff4f2b30')
-            : 'transparent',
-          opacity: (isHoveringResizeArea || isResizing || showSnapIndicator) ? 1 : 0,
-          pointerEvents: 'auto' // Always clickable when hovering header/version tabs
-        }}
-      >
-        <div 
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity pointer-events-none"
-          style={{
-            opacity: (isResizing || isHoveringResizeArea) ? 1 : 0.7
-          }}
-        >
-          <GripVertical className="w-3 h-3 text-[#ff4f2b]" />
-        </div>
-      </div>
       {/* Header */}
       <div 
-        ref={headerRef}
         className="bg-[#111111] p-4 border-b-2 relative"
         style={{ borderColor: color }}
-        onMouseEnter={() => setIsHoveringResizeArea(true)}
-        onMouseLeave={() => {
-          if (!isResizing) {
-            setIsHoveringResizeArea(false)
-          }
-        }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -373,14 +239,7 @@ export function ModelColumn({
 
       {/* Version Tabs */}
       <div 
-        ref={versionTabsRef}
         className="bg-[#0a0a0a] px-4 py-2 border-b border-[#1a1a1a] relative"
-        onMouseEnter={() => setIsHoveringResizeArea(true)}
-        onMouseLeave={() => {
-          if (!isResizing) {
-            setIsHoveringResizeArea(false)
-          }
-        }}
       >
         <div className="flex gap-2 flex-wrap">
           {responses.map((response) => (
@@ -463,6 +322,20 @@ export function ModelColumn({
           </div>
         )}
       </div>
+
+      {/* Scroll to Bottom Button - Positioned at bottom right of column */}
+      {showScrollToBottom && (
+        <button
+          onClick={handleScrollToBottom}
+          className="absolute bottom-4 right-4 z-20 w-8 h-8 rounded-md bg-[#2a2a2a] border border-[#3a3a3a] hover:bg-[#3a3a3a] hover:border-[#4a4a4a] transition-all duration-200 flex items-center justify-center shadow-lg"
+          style={{
+            opacity: showScrollToBottom ? 1 : 0,
+            pointerEvents: showScrollToBottom ? 'auto' : 'none'
+          }}
+        >
+          <ChevronDown className="w-4 h-4 text-[#b3b3b3]" />
+        </button>
+      )}
     </div>
   )
 }
