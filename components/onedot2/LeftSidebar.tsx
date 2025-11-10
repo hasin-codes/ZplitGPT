@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { FolderOpen, MessageSquare, Plus, HelpCircle } from 'lucide-react'
+import { FolderOpen, MessageSquare, Plus, HelpCircle, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import ProfileDropdown from '@/components/kokonutui/profile-dropdown'
 import {
@@ -140,7 +140,7 @@ export function LeftSidebar({
         <div className="flex items-center relative h-8">
           <div 
             className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden" 
-            style={{ transition: 'none', position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}
+            style={{ transition: 'none', position: 'absolute', left: '4px', top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}
           >
             <Image 
               src="/ZplitGPT.svg" 
@@ -152,11 +152,11 @@ export function LeftSidebar({
             />
           </div>
           <span 
-            className="text-[#f5f5f5] font-bold text-xl whitespace-nowrap overflow-hidden inline-block"
+            className="text-[#f5f5f5] font-bold text-2xl whitespace-nowrap overflow-hidden inline-block"
             style={{
               clipPath: isExpanded ? 'inset(0)' : 'inset(0 100% 0 0)',
               transition: 'clip-path 300ms ease-in-out',
-              marginLeft: '60px',
+              marginLeft: '56px',
               position: 'absolute',
               top: '50%',
               transform: 'translateY(-50%)',
@@ -400,7 +400,7 @@ export function LeftSidebar({
       </SidebarContent>
 
       {/* Help Icon */}
-      <div className="p-4 border-t border-[#1a1a1a]">
+      <div className="px-4 py-2 border-t border-[#1a1a1a]">
         <Button
           variant="ghost"
           size="sm"
@@ -408,13 +408,14 @@ export function LeftSidebar({
         >
           <HelpCircle 
             className="w-5 h-5 flex-shrink-0" 
-            style={{ transition: 'none', position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} 
+            style={{ transition: 'none', position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)' }} 
           />
           <span
-            className="whitespace-nowrap overflow-hidden inline-block ml-8"
+            className="whitespace-nowrap overflow-hidden inline-block"
             style={{
               clipPath: isExpanded ? 'inset(0)' : 'inset(0 100% 0 0)',
-              transition: 'clip-path 300ms ease-in-out'
+              transition: 'clip-path 300ms ease-in-out',
+              marginLeft: '24px'
             }}
           >
             Help
@@ -422,8 +423,32 @@ export function LeftSidebar({
         </Button>
       </div>
 
+      {/* Settings Icon */}
+      <div className="px-4 py-2 border-t border-[#1a1a1a]">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] p-3 h-auto relative"
+        >
+          <Settings 
+            className="w-5 h-5 flex-shrink-0" 
+            style={{ transition: 'none', position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)' }} 
+          />
+          <span
+            className="whitespace-nowrap overflow-hidden inline-block"
+            style={{
+              clipPath: isExpanded ? 'inset(0)' : 'inset(0 100% 0 0)',
+              transition: 'clip-path 300ms ease-in-out',
+              marginLeft: '24px'
+            }}
+          >
+            Settings
+          </span>
+        </Button>
+      </div>
+
       {/* User Profile */}
-      <div className="p-4 border-t border-[#1a1a1a]">
+      <div className="px-4 py-2 border-t border-[#1a1a1a]">
         {isExpanded ? (
           <div
             style={{

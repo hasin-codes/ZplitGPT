@@ -1,28 +1,65 @@
-# Zplitgpt
+# ZplitGPT
 
 ![ZplitGPT Logo](./public/ZplitGPT.svg)
 
-**A clean, direct AI model comparison tool built for developers and AI enthusiasts.**
+**The AI Aggregator Built for Developers Who Actually Use AI Models**
 
-## The Story
+ZplitGPT is a powerful AI aggregator platform that lets you compare multiple AI models side-by-side in real-time. Unlike other aggregators that hide behind credit systems and middle layers, ZplitGPT gives you direct API access with full control over your budget, models, and costs.
 
-Zplitgpt started as an experiment after trying AI Fiesta for a while and realizing it wasn't built for people who actually understand how AI models work. Fiesta looked good but it felt more like a closed playground — credits didn't make sense, responses were inconsistent, and users had no real control over models or cost. It was made for general users, not for those who wanted to test, compare, and actually understand what each model is doing.
+## Why ZplitGPT Exists: The AI Fiesta Problem
 
-So Zplitgpt was made to fix that. It's a clean web app that lets you connect to real APIs directly, pick your own models, and run them side by side in a single screen. No fake tokens, no middle layer, no random limits. Just your API key, your models, and full control over what happens.
+After using AI Fiesta and similar aggregators, we noticed critical issues that made them unsuitable for serious AI work:
 
-The goal is simple: make a space where you can compare how different LLMs think using the same prompt. Every model runs in its own column, so you can literally see the differences in reasoning, tone, and quality at once. It's built for developers, AI tinkerers, and anyone who likes understanding why one model answers differently than another.
+### Problems with AI Fiesta & Similar Platforms:
+- **Opaque Credit Systems**: Credits don't map to actual API costs, making budgeting impossible
+- **Inconsistent Responses**: Middle layers and caching cause unpredictable behavior
+- **No Budget Control**: You can't see or control actual API costs
+- **Limited Model Access**: Premium models locked behind paywalls, not actual API availability
+- **Made for General Users**: Designed to hide complexity, not empower developers
+- **Fake Tokens**: Abstracted token systems that don't reflect real usage
+- **Random Limits**: Arbitrary restrictions that don't align with your actual API quotas
 
-The name Zplitgpt comes from that idea — splitting your screen and your perspective to see AI behavior clearly. It's not a product or a social platform. It's just a sharp tool built to work exactly how enthusiasts expect it to.
+### How ZplitGPT Solves This:
+
+✅ **Bring Your Own API Keys** - Full control over your budget and costs  
+✅ **Direct API Integration** - No middle layer, no fake tokens, just real API calls  
+✅ **Transparent Pricing** - Pay only for platform access, optional database features  
+✅ **Side-by-Side Comparison** - See how different models think in real-time  
+✅ **Full Model Control** - Access all models your API keys support  
+✅ **Advanced Configuration** - Fine-tune every parameter exactly as you need  
+✅ **Built for Developers** - No abstraction, no simplification, just control
+
+The name ZplitGPT comes from splitting your screen and perspective to see AI behavior clearly. It's not a product trying to simplify AI for general users—it's a sharp tool built for people who understand how AI models actually work.
 
 ## Features
 
-- **Direct API Integration**: Connect directly to real AI APIs — no middle layer, no fake tokens
-- **Side-by-Side Comparison**: Run multiple models simultaneously in separate columns
-- **Full Model Control**: Choose your own models, configure parameters, and control costs
-- **Advanced Parameters**: Fine-tune temperature, top-p, top-k, frequency penalty, and more
-- **Project Management**: Organize your comparisons into projects with chat history
+### Core Aggregator Features
+
+- **Multi-Model Aggregation**: Access 15+ AI providers (OpenAI, Anthropic, Google, Meta, Mistral, and more) from a single interface
+- **Side-by-Side Comparison**: Run multiple models simultaneously in separate columns to see differences in real-time
+- **Bring Your Own API Keys**: Use your own API keys for complete budget control—you pay providers directly
+- **Direct API Integration**: No middle layer, no fake tokens, no abstraction—just direct API calls
+- **Real-Time Responses**: See how different models respond to the same prompt simultaneously
+
+### Advanced Control
+
+- **Full Model Control**: Choose any model your API keys support—no artificial restrictions
+- **Advanced Parameters**: Fine-tune temperature, top-p, top-k, frequency penalty, presence penalty, and stop sequences
+- **Parameter Presets**: Save and reuse custom parameter configurations
+- **System Context Management**: Set system prompts that apply to all models for consistent comparisons
+
+### Organization & Management
+
+- **Project Management**: Organize your comparisons into projects with full chat history
+- **Chat History**: Save and revisit conversations (optional feature with database storage)
+- **Version Comparison**: Compare different versions of model responses side-by-side
+- **Diff View**: Visual comparison of responses from different models
+
+### Developer Experience
+
 - **Clean Interface**: Minimal, focused UI that gets out of your way
-- **Real-Time Comparison**: See how different models respond to the same prompt in real-time
+- **Transparent Costs**: See exactly what you're paying—no hidden fees or credit confusion
+- **Full Control**: Configure everything exactly as you need it
 
 ## Getting Started
 
@@ -48,16 +85,69 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Usage
 
-1. **Set Up Your API Keys**: Configure your API keys for the models you want to use
-2. **Select Models**: Choose which models to compare from the model selector
-3. **Configure Parameters**: Adjust temperature, top-p, and other parameters in Advanced Controls
-4. **Send Prompts**: Type your prompt and watch all selected models respond side-by-side
-5. **Compare Results**: See the differences in reasoning, tone, and quality across models
-6. **Manage Projects**: Organize your comparisons into projects with full chat history
+### Getting Started
+
+1. **Set Up Your API Keys**: 
+   - Add your API keys for the AI providers you want to use (OpenAI, Anthropic, Google, etc.)
+   - Your keys are stored securely and used directly—we never see or store your API responses
+   
+2. **Select Models**: 
+   - Choose which models to compare from the model selector
+   - All models your API keys support are available—no premium restrictions
+   
+3. **Configure Parameters**: 
+   - Adjust temperature, top-p, top-k, and other parameters in Advanced Controls
+   - Save parameter presets for quick reuse
+   - Set system context that applies to all models
+   
+4. **Send Prompts**: 
+   - Type your prompt and watch all selected models respond side-by-side
+   - See real-time responses as they stream in
+   
+5. **Compare Results**: 
+   - View differences in reasoning, tone, and quality across models
+   - Use the diff view to compare responses visually
+   - Save versions to compare different iterations
+   
+6. **Manage Projects**: 
+   - Organize your comparisons into projects
+   - Save chat history (optional Pro feature)
+   - Revisit and compare past conversations
+
+## Pricing & Cost Control
+
+### Transparent Pricing Model
+
+ZplitGPT uses a transparent pricing model that gives you complete control:
+
+1. **Platform Access Fee**: A small monthly fee for using the platform (covers infrastructure and development)
+2. **Your API Costs**: You pay AI providers directly using your own API keys—we never touch your API costs
+3. **Optional Database Features**: 
+   - **Free Tier**: Basic usage without saved context or chat history
+   - **Pro Tier**: Save system context and chat history (covers database storage costs, similar to ChatGPT's model)
+
+### Why This Model?
+
+- **Full Budget Control**: You see and control every dollar spent on AI APIs
+- **No Hidden Markups**: We don't mark up API costs—you pay providers directly
+- **Fair Platform Fee**: Small fee for the platform, optional fee for database features
+- **Transparent Costs**: No credit confusion, no fake tokens, just real costs
+
+### Comparison to AI Fiesta
+
+| Feature | AI Fiesta | ZplitGPT |
+|---------|-----------|----------|
+| API Key Support | ❌ No | ✅ Yes (Bring Your Own) |
+| Budget Control | ❌ Opaque credits | ✅ Full transparency |
+| Direct API Access | ❌ Middle layer | ✅ Direct integration |
+| Model Restrictions | ❌ Premium paywalls | ✅ All models available |
+| Cost Visibility | ❌ Hidden markups | ✅ Direct provider costs |
+| Database Features | ❌ Included (unclear cost) | ✅ Optional (transparent) |
+| Developer Focus | ❌ General users | ✅ Built for developers |
 
 ## Philosophy
 
-Zplitgpt is built on a simple principle: **give users full control and direct access**. 
+ZplitGPT is built on a simple principle: **give users full control and direct access**. 
 
 - No artificial limits or credit systems
 - No abstraction layer between you and the models
@@ -66,13 +156,36 @@ Zplitgpt is built on a simple principle: **give users full control and direct ac
 
 It's a tool for people who understand AI models and want to see them work, not a product trying to simplify things for general users.
 
+## Supported AI Providers
+
+ZplitGPT aggregates models from 15+ AI providers:
+
+- **OpenAI**: GPT-3.5 Turbo, GPT-4, GPT-4 Turbo
+- **Anthropic**: Claude 3 Haiku, Claude 3 Sonnet, Claude 3 Opus
+- **Google**: Gemini Pro, Gemini Flash, Gemini Ultra
+- **Meta**: Llama 3.1 70B, Llama 3.1 8B, Llama 3.1 405B
+- **Mistral AI**: Mistral 7B, Mixtral 8x7B, Mistral Large
+- **Qwen**: Qwen 72B
+- **xAI**: Grok 2
+- **Perplexity**: Perplexity 70B
+- **Zhipu AI**: GLM-4
+- **DeepSeek**: DeepSeek Coder
+- **Moonshot AI**: Moonshot v1
+- **Amazon**: Titan Text
+- **Nous Research**: Hermes 2
+- **Cerebras**: Cerebras GPT
+
+*More providers added regularly. All models available based on your API key access.*
+
 ## Technology Stack
 
-- **Next.js 16** - React framework
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **Radix UI** - Accessible components
-- **Lucide React** - Icons
+- **Next.js 16** - React framework with App Router
+- **TypeScript** - Full type safety
+- **Tailwind CSS** - Utility-first styling
+- **Radix UI** - Accessible, unstyled components
+- **Lucide React** - Beautiful icon library
+- **Prisma** - Database ORM (for optional chat history)
+- **Z-AI SDK** - Direct AI API integration
 
 ## Assets
 
