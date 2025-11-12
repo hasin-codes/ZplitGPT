@@ -520,20 +520,23 @@ We are witnessing the dawn of the quantum era.`,
   const activeModelsList = models.filter(model => activeModels.includes(model.id))
   const activeCount = activeModelsList.length
   
-  // Calculate column width: if 2 or less, full width; if 3+, show 3 full + peek of 4th
+  // Calculate column width: mobile shows 1.05 columns, desktop shows 3 columns
   const getColumnWidth = () => {
     if (activeCount <= 2) {
       return `${100 / activeCount}%`
     } else {
-      // Show 3 full columns + a bit of 4th (approximately 3.2 columns visible)
-      return `${100 / 3.2}%`
+      // Mobile: 1.05 columns with 6px gap, Desktop: 3 columns with 12px gap
+      return 'calc((100% - 6px) / 1.05)'
     }
   }
 
-  // Handle smooth scroll snapping one model at a time
+  // Handle smooth scroll snapping one model at a time (desktop only)
   useEffect(() => {
     const container = scrollContainerRef.current
     if (!container || activeCount <= 2) return
+    
+    // Disable scroll snapping on mobile
+    if (typeof window !== 'undefined' && window.innerWidth < 768) return
 
     let scrollTimeout: NodeJS.Timeout
     let isSnapping = false
@@ -633,14 +636,13 @@ We are witnessing the dawn of the quantum era.`,
     <div className="flex-1 bg-black overflow-hidden w-full">
       <div 
         ref={scrollContainerRef}
-        className="h-full w-full flex overflow-x-auto"
+        className="h-full w-full flex overflow-x-auto gap-1.5 md:gap-3"
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: '#333333 #0a0a0a',
           scrollBehavior: 'smooth',
           userSelect: 'none',
-          padding: '12px',
-          gap: '12px'
+          padding: '12px'
         }}
       >
         {activeModelsList.map((model) => (
@@ -655,6 +657,7 @@ We are witnessing the dawn of the quantum era.`,
             onAddVersion={() => addNewVersion(model.id)}
             onOpenDiff={() => openDiffModal(model.id)}
             width={getColumnWidth()}
+            className="md:!w-[calc((100%-12px)/3)]"
           />
         ))}
       </div>

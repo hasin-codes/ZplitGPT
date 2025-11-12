@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TopBar } from '@/components/onedot2/TopBar'
 import { LeftSidebar, Project, ChatHistory } from '@/components/onedot2/LeftSidebar'
 import { CenterWorkspace } from '@/components/onedot2/CenterWorkspace'
@@ -11,6 +11,17 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 export default function Home() {
   const [leftCollapsed, setLeftCollapsed] = useState(true) // Left sidebar always starts collapsed
   const [leftHovered, setLeftHovered] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
   const [activeModels, setActiveModels] = useState(['gpt-3.5-turbo', 'claude-3-sonnet', 'gemini-pro', 'mistral-7b'])
   const [context, setContext] = useState('You are a helpful AI assistant that provides clear, accurate, and concise responses.')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -125,7 +136,7 @@ export default function Home() {
       <div 
         className="absolute inset-0 flex flex-col overflow-hidden transition-all duration-300 ease-in-out"
         style={{
-          left: !leftHovered ? '64px' : '256px', // 64px when collapsed, 256px when hovered
+          left: isMobile ? '0px' : (!leftHovered ? '64px' : '256px'), // Mobile: no offset, Desktop: based on sidebar
           right: '0px'
         }}
       >
@@ -135,6 +146,7 @@ export default function Home() {
           onSaveContext={handleSaveContext}
           activeModels={activeModels}
           onModelToggle={handleModelToggle}
+          onSidebarToggle={() => setLeftCollapsed(!leftCollapsed)}
         />
         <CenterWorkspace 
           leftCollapsed={leftCollapsed}
@@ -144,6 +156,9 @@ export default function Home() {
           leftCollapsed={leftCollapsed}
           selectedChat={selectedChat}
           onChatNameUpdate={handleChatNameUpdate}
+          context={context}
+          onContextChange={setContext}
+          onSaveContext={handleSaveContext}
         />
       </div>
 

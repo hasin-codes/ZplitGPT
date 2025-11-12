@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Timer, Coins, Copy, Diff, Download, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export interface ModelResponse {
   id: string
@@ -23,6 +24,7 @@ interface ModelColumnProps {
   onAddVersion: () => void
   onOpenDiff: () => void
   width: string
+  className?: string
 }
 
 export function ModelColumn({
@@ -34,7 +36,8 @@ export function ModelColumn({
   onVersionChange,
   onAddVersion,
   onOpenDiff,
-  width
+  width,
+  className
 }: ModelColumnProps) {
   const activeResponse = responses.find(r => r.version === activeVersion) || responses[0]
   const displayLatency = activeResponse?.latency || 0
@@ -195,7 +198,7 @@ export function ModelColumn({
     <div
       ref={columnRef}
       data-model-column={id}
-      className="flex-shrink-0 flex flex-col relative rounded-lg overflow-hidden"
+      className={cn("flex-shrink-0 flex flex-col relative rounded-lg overflow-hidden", className)}
       style={{
         width,
         userSelect: 'none',

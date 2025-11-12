@@ -8,8 +8,12 @@ import { Slider } from '@/components/ui/slider'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
-export function AdvanceControls() {
-  const [isOpen, setIsOpen] = useState(false)
+interface AdvanceControlsProps {
+  autoOpen?: boolean
+}
+
+export function AdvanceControls({ autoOpen = false }: AdvanceControlsProps) {
+  const [isOpen, setIsOpen] = useState(autoOpen)
   const [temperature, setTemperature] = useState([0.7])
   const [maxTokens, setMaxTokens] = useState([2048])
   const [topP, setTopP] = useState([0.9])
@@ -48,8 +52,17 @@ export function AdvanceControls() {
     }
   }
 
-  // Close dropdown when clicking outside
+  // Auto-open when in modal (mobile)
   useEffect(() => {
+    if (autoOpen) {
+      setIsOpen(true)
+    }
+  }, [autoOpen])
+
+  // Close dropdown when clicking outside (only on desktop, not in modal)
+  useEffect(() => {
+    if (autoOpen) return // Don't close on outside click when in modal
+
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false)
@@ -63,41 +76,55 @@ export function AdvanceControls() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isOpen])
+  }, [isOpen, autoOpen])
 
   return (
-    <div className="w-full bg-[#0a0a0a] border-b border-[#1a1a1a] relative" ref={dropdownRef}>
+    <div className={cn(
+      "w-full bg-[#0a0a0a] relative",
+      autoOpen ? "border-0" : "border-b border-[#1a1a1a]"
+    )} ref={dropdownRef}>
       {/* Header - Always Visible */}
       <div 
-        className="px-4 py-3 flex items-center justify-between hover:bg-[#0a0a0a]/50 transition-colors cursor-pointer"
-        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "flex items-center justify-between transition-colors",
+          autoOpen ? "px-0 py-2 cursor-default" : "px-4 py-3 hover:bg-[#0a0a0a]/50 cursor-pointer"
+        )}
+        onClick={() => !autoOpen && setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-[#ff4f2b]" />
           <span className="text-[#b3b3b3] text-sm font-medium">Advance Controls</span>
         </div>
-        <Button
-          onClick={(e) => {
-            e.stopPropagation()
-            setIsOpen(!isOpen)
-          }}
-          variant="ghost"
-          size="sm"
-          className="h-[30px] w-[30px] p-0 text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a]"
-        >
-          <ChevronDown className={`h-4 w-4 transition-all duration-200 ${isOpen ? 'rotate-180 text-[#ff4f2b]' : 'text-[#b3b3b3]'}`} />
-        </Button>
+        {!autoOpen && (
+          <Button
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsOpen(!isOpen)
+            }}
+            variant="ghost"
+            size="sm"
+            className="h-[30px] w-[30px] p-0 text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a]"
+          >
+            <ChevronDown className={`h-4 w-4 transition-all duration-200 ${isOpen ? 'rotate-180 text-[#ff4f2b]' : 'text-[#b3b3b3]'}`} />
+          </Button>
+        )}
       </div>
 
-      {/* Dropdown Panel - Overlays CenterWorkspace */}
+      {/* Dropdown Panel - Overlays CenterWorkspace on desktop, static in modal */}
       <div 
         className={cn(
-          "absolute top-full left-0 right-0 bg-[#0a0a0a] border-b border-[#1a1a1a] z-[9999] overflow-hidden transition-all duration-300 ease-in-out",
-          isOpen ? "max-h-[80vh] opacity-100" : "max-h-0 opacity-0"
+          "bg-[#0a0a0a] overflow-hidden transition-all duration-300 ease-in-out",
+          autoOpen 
+            ? "relative w-full" 
+            : "absolute top-full left-0 right-0 border-b border-[#1a1a1a] z-[9999]",
+          isOpen ? (autoOpen ? "max-h-none opacity-100" : "max-h-[80vh] opacity-100") : "max-h-0 opacity-0"
         )}
       >
-          <div className="p-4">
-            <div className="space-y-6 max-h-[80vh] overflow-y-auto pr-2">
+          <div className={autoOpen ? "p-0" : "p-4"}>
+            <div className={cn(
+              "space-y-6",
+              autoOpen ? "overflow-y-visible" : "max-h-[80vh] overflow-y-auto pr-2"
+            )}>
               {/* Model Parameters */}
               <div className="space-y-1">
                 <h3 className="text-[#f5f5f5] font-medium text-sm mb-3">Model Parameters</h3>
