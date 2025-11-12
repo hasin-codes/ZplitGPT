@@ -33,6 +33,7 @@ interface LeftSidebarProps {
   onChatCreate?: () => void
   onProjectRename?: (projectId: string, name: string) => void
   onChatRename?: (chatId: string, name: string) => void
+  onSettingsClick?: () => void
 }
 
 export interface Project {
@@ -47,9 +48,9 @@ export interface ChatHistory {
   timestamp: string
 }
 
-export function LeftSidebar({ 
-  collapsed, 
-  onToggle, 
+export function LeftSidebar({
+  collapsed,
+  onToggle,
   onHoverChange,
   projects: propsProjects,
   chats: propsChats,
@@ -60,7 +61,8 @@ export function LeftSidebar({
   onProjectCreate,
   onChatCreate,
   onProjectRename,
-  onChatRename
+  onChatRename,
+  onSettingsClick
 }: LeftSidebarProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
@@ -428,11 +430,12 @@ export function LeftSidebar({
         <Button
           variant="ghost"
           size="sm"
+          onClick={onSettingsClick}
           className="w-full justify-start text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] p-3 h-auto relative"
         >
-          <Settings 
-            className="w-5 h-5 flex-shrink-0" 
-            style={{ transition: 'none', position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)' }} 
+          <Settings
+            className="w-5 h-5 flex-shrink-0"
+            style={{ transition: 'none', position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)' }}
           />
           <span
             className="whitespace-nowrap overflow-hidden inline-block"

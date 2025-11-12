@@ -122,53 +122,49 @@ export function CommandDock({
         )}
       >
         <div className="p-4">
-          <div className="flex items-center justify-between">
-           
-           
+          <div className="flex items-center justify-between mb-2">
+            {!contextSaved && context && (
+              <span className="text-[#ff4f2b] text-xs flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-[#ff4f2b] animate-pulse" />
+                Unsaved changes
+              </span>
+            )}
           </div>
 
-          <div className="flex items-start gap-3">
-            <div className="flex-1 relative">
-              <div className="flex items-center justify-between mb-2">
-                
-                {!contextSaved && context && (
-                  <span className="text-[#ff4f2b] text-xs flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-[#ff4f2b] animate-pulse" />
-                    Unsaved changes
-                  </span>
+          <div className="space-y-3">
+            <Textarea
+              ref={textareaRef}
+              value={context}
+              onChange={(e) => handleContextChange(e.target.value)}
+              placeholder="Define system context or instructions for all models..."
+              className="w-full bg-[#000000] border-[#1a1a1a] text-[#f5f5f5] placeholder-[#666666] resize-none focus:border-[#ff4f2b] focus:ring-[#ff4f2b] transition-all duration-200 min-h-[80px] max-h-[200px] rounded-lg text-sm font-mono"
+              style={{
+                overflow: 'hidden'
+              }}
+              rows={3}
+            />
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleSaveContext}
+                  disabled={!context.trim()}
+                  className="bg-[#ff4f2b] hover:bg-[#ff6b4a] text-white px-4 py-2 h-auto text-sm rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Check className="w-4 h-4 mr-2" />
+                  Save
+                </Button>
+                {savedContext && (
+                  <Button
+                    onClick={handleCancelEdit}
+                    variant="outline"
+                    className="border-[#1a1a1a] text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] px-4 py-2 h-auto text-sm rounded-lg"
+                  >
+                    Cancel
+                  </Button>
                 )}
               </div>
-              <Textarea
-                ref={textareaRef}
-                value={context}
-                onChange={(e) => handleContextChange(e.target.value)}
-                placeholder="Define system context or instructions for all models..."
-                className="w-full bg-[#000000] border-[#1a1a1a] text-[#f5f5f5] placeholder-[#666666] resize-none focus:border-[#ff4f2b] focus:ring-[#ff4f2b] transition-all duration-200 min-h-[60px] max-h-[120px] rounded-lg text-sm font-mono"
-                style={{
-                  overflow: 'hidden'
-                }}
-                rows={2}
-              />
-            </div>
-            
-            <div className="flex items-start gap-2 pt-6">
-              <Button
-                onClick={handleSaveContext}
-                disabled={!context.trim()}
-                className="bg-[#ff4f2b] hover:bg-[#ff6b4a] text-white px-3 py-2 h-auto text-sm rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Check className="w-4 h-4 mr-1" />
-                Save
-              </Button>
-              {savedContext && (
-                <Button
-                  onClick={handleCancelEdit}
-                  variant="outline"
-                  className="border-[#1a1a1a] text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] px-3 py-2 h-auto text-sm rounded-lg"
-                >
-                  Cancel
-                </Button>
-              )}
+              
               <DropdownMenu open={settingsOpen} onOpenChange={setSettingsOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button

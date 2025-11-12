@@ -5,6 +5,7 @@ import { TopBar } from '@/components/onedot2/TopBar'
 import { LeftSidebar, Project, ChatHistory } from '@/components/onedot2/LeftSidebar'
 import { CenterWorkspace } from '@/components/onedot2/CenterWorkspace'
 import { AIInput } from '@/components/onedot2/AIInput'
+import { SettingsModal } from '@/components/onedot2/SettingsModal'
 import { SidebarProvider } from '@/components/ui/sidebar'
 
 export default function Home() {
@@ -12,6 +13,7 @@ export default function Home() {
   const [leftHovered, setLeftHovered] = useState(false)
   const [activeModels, setActiveModels] = useState(['gpt-3.5-turbo', 'claude-3-sonnet', 'gemini-pro', 'mistral-7b'])
   const [context, setContext] = useState('You are a helpful AI assistant that provides clear, accurate, and concise responses.')
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   
   // Projects and Chats state
   const [projects, setProjects] = useState<Project[]>([
@@ -89,11 +91,19 @@ export default function Home() {
     }
   }
 
+  const handleSettingsOpen = () => {
+    setIsSettingsOpen(true)
+  }
+
+  const handleSettingsClose = () => {
+    setIsSettingsOpen(false)
+  }
+
   return (
     <div className="h-screen w-screen bg-black relative overflow-hidden">
       <SidebarProvider>
         {/* Left Sidebar */}
-        <LeftSidebar 
+        <LeftSidebar
           collapsed={leftCollapsed}
           onToggle={() => setLeftCollapsed(!leftCollapsed)}
           onHoverChange={setLeftHovered}
@@ -107,6 +117,7 @@ export default function Home() {
           onChatCreate={handleChatCreate}
           onProjectRename={handleProjectRename}
           onChatRename={handleChatRename}
+          onSettingsClick={handleSettingsOpen}
         />
       </SidebarProvider>
 
@@ -135,6 +146,12 @@ export default function Home() {
           onChatNameUpdate={handleChatNameUpdate}
         />
       </div>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={handleSettingsClose}
+      />
     </div>
   )
 }
