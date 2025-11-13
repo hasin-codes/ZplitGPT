@@ -1,23 +1,31 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { TopBar } from '@/components/onedot2/TopBar'
-import { LeftSidebar, Project, ChatHistory } from '@/components/onedot2/LeftSidebar'
+import { LeftSidebar, ChatHistory } from '@/components/onedot2/LeftSidebar'
+import type { Project } from '@/components/onedot2/LeftSidebar'
 import { CenterWorkspace } from '@/components/onedot2/CenterWorkspace'
+import { AIInput } from '@/components/onedot2/AIInput'
 import { SettingsModal } from '@/components/onedot2/SettingsModal'
 import { SidebarProvider } from '@/components/ui/sidebar'
-import AI_Prompt from '@/components/kokonutui/ai-prompt'
-import { ExamplePromptCards } from '@/components/onedot2/ExamplePromptCards'
-import { getChatHistory, createNewChat, updateChatTitle, initializeDemoChat, addMessageToChat } from '@/lib/chat-storage'
-import type { Project } from '@/components/onedot2/LeftSidebar'
+import { 
+  getAllChats, 
+  getChatById, 
+  createNewChat, 
+  getChatHistory,
+  updateChatTitle,
+  initializeDemoChat,
+  deleteChat,
+  type ChatData 
+} from '@/lib/chat-storage'
 
-export default function Home() {
+export default function ChatPage() {
+  const params = useParams()
   const router = useRouter()
-  const isDefaultState = true // Root page is always default state
+  const chatId = params.chatId as string
   
-  // Sidebar: expanded by default when in default state
-  // Use localStorage to persist sidebar state, but default to expanded on default page
+  // Use localStorage to persist sidebar state, but default to collapsed on chat pages
   const [leftCollapsed, setLeftCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('sidebar-collapsed')
@@ -25,7 +33,7 @@ export default function Home() {
         return saved === 'true'
       }
     }
-    return false // Default to expanded on default page
+    return true // Default to collapsed on chat pages
   })
   const [leftHovered, setLeftHovered] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -45,35 +53,26 @@ export default function Home() {
     }
   }, [leftCollapsed, isMobile])
   
-  // Update sidebar state when default state changes (with smooth transition) - only on desktop
+  // On chat pages, ensure sidebar starts collapsed (with smooth transition) - only on desktop
   useEffect(() => {
-    if (isDefaultState && !isMobile) {
-      // Check if we're coming from a chat page (sidebar was collapsed)
-      const wasCollapsed = leftCollapsed
-      if (wasCollapsed) {
+    if (!isMobile) {
+      // Check if we're coming from default page (sidebar was expanded)
+      const wasExpanded = !leftCollapsed
+      if (wasExpanded) {
         // Add smooth transition
         setIsTransitioning(true)
         const timer = setTimeout(() => {
-          setLeftCollapsed(false) // Expanded in default state
+          setLeftCollapsed(true) // Collapsed on chat pages
           setTimeout(() => setIsTransitioning(false), 300) // Clear transition flag after animation
         }, 100) // Small delay to allow page to render
         return () => clearTimeout(timer)
       }
     }
-  }, [isDefaultState, leftCollapsed, isMobile])
-
-  // Detect mobile
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  }, [chatId, leftCollapsed, isMobile]) // Run when chatId changes
   const [activeModels, setActiveModels] = useState(['gpt-3.5-turbo', 'claude-3-sonnet', 'gemini-pro', 'mistral-7b'])
   const [context, setContext] = useState('You are a helpful AI assistant that provides clear, accurate, and concise responses.')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [currentChat, setCurrentChat] = useState<ChatData | null>(null)
   
   // Projects and Chats state
   const [projects, setProjects] = useState<Project[]>([
@@ -91,13 +90,87 @@ export default function Home() {
     // Initialize demo chat if it doesn't exist
     initializeDemoChat()
     
-    // Load chat history
+    // Load chat history and remove empty chats
+    const allChats = getAllChats()
+    const emptyChatIds: string[] = []
+    
+    // Find empty chats
+    allChats.forEach(chat => {
+      if (chat.messages.length === 0) {
+        emptyChatIds.push(chat.id)
+      }
+    })
+    
+    // Delete empty chats
+    emptyChatIds.forEach(chatId => {
+      deleteChat(chatId)
+    })
+    
+    // Load updated chat history
     const history = getChatHistory()
     setChats(history.map(chat => ({
       id: chat.id,
       title: chat.title,
       timestamp: chat.timestamp
     })))
+  }, [])
+
+  // Function to refresh current chat from storage
+  const refreshCurrentChat = useCallback(() => {
+    if (chatId) {
+      const chat = getChatById(chatId)
+      if (chat) {
+        // Check if chat is empty and delete it
+        if (chat.messages.length === 0) {
+          deleteChat(chatId)
+          // Refresh chat history
+          const history = getChatHistory()
+          setChats(history.map(chat => ({
+            id: chat.id,
+            title: chat.title,
+            timestamp: chat.timestamp
+          })))
+          // Navigate to home if current chat was deleted
+          router.push('/')
+          return
+        }
+        setCurrentChat(chat)
+      } else {
+        // Chat doesn't exist in storage - create a new unsaved chat object
+        // This allows users to start typing before the chat is saved
+        const now = new Date().toISOString()
+        const unsavedChat: ChatData = {
+          id: chatId,
+          title: 'New Chat',
+          timestamp: now,
+          lastModified: now,
+          messages: []
+        }
+        setCurrentChat(unsavedChat)
+      }
+      // Refresh chat history
+      const history = getChatHistory()
+      setChats(history.map(chat => ({
+        id: chat.id,
+        title: chat.title,
+        timestamp: chat.timestamp
+      })))
+    }
+  }, [chatId, router])
+
+  // Load current chat
+  useEffect(() => {
+    refreshCurrentChat()
+  }, [refreshCurrentChat])
+
+  // Detect mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
   const handleModelToggle = (modelId: string) => {
@@ -132,54 +205,15 @@ export default function Home() {
 
   // Chat handlers
   const handleChatCreate = () => {
-    // On default state, do nothing (button should be disabled)
-    // This handler is kept for type safety but won't be called
-  }
-
-  // Handle message sent from ai-prompt component or example cards
-  const handleMessageFromPrompt = (message: string) => {
-    // Create a new chat
-    const newChat = createNewChat()
-    
-    // Create message object
-    const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    const now = new Date().toISOString()
-    
-    const messageObj = {
-      id: messageId,
-      prompt: message,
-      timestamp: now,
-      modelResponses: {}
-    }
-    
-    // Add message to chat (this will save the chat)
-    addMessageToChat(newChat.id, messageObj)
-    
-    // Generate chat name from message
-    const words = message.trim().split(/\s+/).slice(0, 4)
-    let chatName = words.join(' ')
-    if (chatName.length > 30) {
-      chatName = chatName.substring(0, 27) + '...'
-    }
-    if (chatName) {
-      updateChatTitle(newChat.id, chatName)
-    }
-    
-    // Refresh chat history
-    const history = getChatHistory()
-    setChats(history.map(chat => ({
-      id: chat.id,
-      title: chat.title,
-      timestamp: chat.timestamp
-    })))
-    
-    // Navigate to the new chat
-    router.push(`/chat/${newChat.id}`)
+    // Navigate to default screen (/) when new chat is clicked from a chat page
+    router.push('/')
   }
 
   const handleChatSelect = (chatId: string | null) => {
     if (chatId) {
       router.push(`/chat/${chatId}`)
+    } else {
+      router.push('/')
     }
   }
 
@@ -194,12 +228,34 @@ export default function Home() {
     })))
   }
 
+  const handleChatNameUpdate = (chatId: string, name: string) => {
+    if (currentChat && currentChat.title === 'New Chat') {
+      updateChatTitle(chatId, name)
+      setCurrentChat({ ...currentChat, title: name })
+      // Refresh chat history
+      const history = getChatHistory()
+      setChats(history.map(chat => ({
+        id: chat.id,
+        title: chat.title,
+        timestamp: chat.timestamp
+      })))
+    }
+  }
+
   const handleSettingsOpen = () => {
     setIsSettingsOpen(true)
   }
 
   const handleSettingsClose = () => {
     setIsSettingsOpen(false)
+  }
+
+  if (!currentChat) {
+    return (
+      <div className="h-screen w-screen bg-black flex items-center justify-center">
+        <div className="text-[#f5f5f5]">Loading...</div>
+      </div>
+    )
   }
 
   return (
@@ -213,7 +269,7 @@ export default function Home() {
           projects={projects}
           chats={chats}
           selectedProject={selectedProject}
-          selectedChat={null}
+          selectedChat={chatId}
           onProjectSelect={setSelectedProject}
           onChatSelect={handleChatSelect}
           onProjectCreate={handleProjectCreate}
@@ -221,8 +277,6 @@ export default function Home() {
           onProjectRename={handleProjectRename}
           onChatRename={handleChatRename}
           onSettingsClick={handleSettingsOpen}
-          disableHoverBehavior={isDefaultState}
-          disableNewChat={isDefaultState}
         />
       </SidebarProvider>
 
@@ -230,7 +284,7 @@ export default function Home() {
       <div 
         className="absolute inset-0 flex flex-col overflow-hidden transition-all duration-300 ease-in-out"
         style={{
-          left: isMobile ? '0px' : (leftCollapsed ? '64px' : '256px'), // Mobile: no offset, Desktop: based on sidebar collapsed state
+          left: isMobile ? '0px' : (leftCollapsed ? '64px' : '256px'),
           right: '0px'
         }}
       >
@@ -242,35 +296,21 @@ export default function Home() {
           onModelToggle={handleModelToggle}
           onSidebarToggle={() => setLeftCollapsed(!leftCollapsed)}
         />
-        {/* CenterWorkspace takes full remaining height */}
-        <div className="flex-1 relative overflow-hidden">
-          <CenterWorkspace 
-            leftCollapsed={leftCollapsed}
-            activeModels={activeModels}
-          />
-          {/* Progressive glass blur effect behind AI prompt - from bottom to 4-5px above AI prompt */}
-          <div 
-            className="absolute left-0 right-0 pointer-events-none z-[5]"
-            style={{
-              bottom: '0px',
-              top: 'calc(100% - 100% + 180px)', // Approximately 4-5px above AI prompt component (pb-6=24px + pt-4=16px + component height ~140px = ~180px)
-              background: 'transparent',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,0.95) 12%, rgba(0,0,0,0.88) 22%, rgba(0,0,0,0.75) 35%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0.18) 80%, rgba(0,0,0,0.08) 92%, rgba(0,0,0,0) 100%)',
-              WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,0.95) 12%, rgba(0,0,0,0.88) 22%, rgba(0,0,0,0.75) 35%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0.18) 80%, rgba(0,0,0,0.08) 92%, rgba(0,0,0,0) 100%)',
-            }}
-          />
-          {/* Example Prompt Cards - centered on screen */}
-          <div className="absolute inset-0 flex items-center justify-center z-10" style={{ paddingBottom: '180px', paddingTop: isMobile ? '40px' : '0px' }}>
-            <ExamplePromptCards onCardClick={handleMessageFromPrompt} />
-          </div>
-          
-          {/* Default state: Show ai-prompt component at bottom with proper gap - absolutely positioned */}
-          <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center pb-6 pt-4 z-10">
-            <AI_Prompt onMessageSent={handleMessageFromPrompt} />
-          </div>
-        </div>
+        <CenterWorkspace 
+          leftCollapsed={leftCollapsed}
+          activeModels={activeModels}
+          chatId={chatId}
+          chatData={currentChat}
+        />
+        <AIInput 
+          leftCollapsed={leftCollapsed}
+          selectedChat={chatId}
+          onChatNameUpdate={handleChatNameUpdate}
+          context={context}
+          onContextChange={setContext}
+          onSaveContext={handleSaveContext}
+          onMessageSent={refreshCurrentChat}
+        />
       </div>
 
       {/* Settings Modal */}
@@ -281,3 +321,4 @@ export default function Home() {
     </div>
   )
 }
+

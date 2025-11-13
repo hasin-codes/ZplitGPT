@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { FolderOpen, MessageSquare, Plus, HelpCircle, Settings, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -27,14 +28,16 @@ interface LeftSidebarProps {
   projects?: Project[]
   chats?: ChatHistory[]
   selectedProject?: string
-  selectedChat?: string
+  selectedChat?: string | null
   onProjectSelect?: (projectId: string) => void
-  onChatSelect?: (chatId: string) => void
+  onChatSelect?: (chatId: string | null) => void
   onProjectCreate?: (name: string) => void
   onChatCreate?: () => void
   onProjectRename?: (projectId: string, name: string) => void
   onChatRename?: (chatId: string, name: string) => void
   onSettingsClick?: () => void
+  disableHoverBehavior?: boolean
+  disableNewChat?: boolean
 }
 
 export interface Project {
@@ -63,17 +66,21 @@ export function LeftSidebar({
   onChatCreate,
   onProjectRename,
   onChatRename,
-  onSettingsClick
+  onSettingsClick,
+  disableHoverBehavior = false,
+  disableNewChat = false
 }: LeftSidebarProps) {
+  const router = useRouter()
   const isMobile = useIsMobile()
   const [isHovered, setIsHovered] = useState(false)
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
   
   // On mobile: always expanded when open (not collapsed)
-  // On desktop: expanded on hover or when dropdown is open
+  // On desktop: expanded on hover or when dropdown is open (unless hover behavior is disabled)
+  // When hover behavior is disabled, only use collapsed state
   const isExpanded = isMobile 
     ? !collapsed 
-    : (isHovered || isProfileDropdownOpen || !collapsed)
+    : (disableHoverBehavior ? !collapsed : (isHovered || isProfileDropdownOpen || !collapsed))
   
   const [projectsExpanded, setProjectsExpanded] = useState(false)
 
@@ -107,20 +114,20 @@ export function LeftSidebar({
   ]
 
   const selectedProject = propsSelectedProject ?? 'default'
-  const selectedChat = propsSelectedChat ?? 'chat-1'
+  const selectedChat = propsSelectedChat ?? null
 
   const setSelectedProject = propsOnProjectSelect || (() => {})
   const setSelectedChat = propsOnChatSelect || (() => {})
 
   const handleMouseEnter = () => {
-    if (!isMobile) {
+    if (!isMobile && !disableHoverBehavior) {
       setIsHovered(true)
       onHoverChange?.(true)
     }
   }
 
   const handleMouseLeave = () => {
-    if (!isMobile) {
+    if (!isMobile && !disableHoverBehavior) {
       // Don't collapse if profile dropdown is open
       if (!isProfileDropdownOpen) {
         setIsHovered(false)
@@ -325,12 +332,18 @@ export function LeftSidebar({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-[#b3b3b3] hover:text-[#ff4f2b] hover:bg-[#151515] p-1 h-auto flex-shrink-0"
+                className={cn(
+                  "text-[#b3b3b3] hover:text-[#ff4f2b] hover:bg-[#151515] p-1 h-auto flex-shrink-0",
+                  disableNewChat && "opacity-50 cursor-not-allowed hover:text-[#b3b3b3] hover:bg-transparent"
+                )}
                 style={{ transition: 'none', position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)' }}
                 onClick={(e) => {
                   e.stopPropagation()
-                  onChatCreate?.()
+                  if (!disableNewChat) {
+                    onChatCreate?.()
+                  }
                 }}
+                disabled={disableNewChat}
               >
                 <Plus className="w-3 h-3 flex-shrink-0" style={{ transition: 'none', position: 'relative' }} />
               </Button>
@@ -342,7 +355,12 @@ export function LeftSidebar({
                 <SidebarMenuItem key={chat.id}>
                   <SidebarMenuButton
                     onClick={() => {
-                      setSelectedChat(chat.id)
+                      // Use router to navigate to chat page
+                      if (propsOnChatSelect) {
+                        propsOnChatSelect(chat.id)
+                      } else {
+                        router.push(`/chat/${chat.id}`)
+                      }
                       // Close sidebar on mobile when selecting a chat
                       if (isMobile) {
                         onToggle()
@@ -523,11 +541,11 @@ export function LeftSidebar({
     )
   }
 
-  // Desktop sidebar: Collapsible with hover behavior
+  // Desktop sidebar: Collapsible with hover behavior (unless disabled)
   return (
     <div
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={disableHoverBehavior ? undefined : handleMouseEnter}
+      onMouseLeave={disableHoverBehavior ? undefined : handleMouseLeave}
       className="h-full"
     >
       <Sidebar
@@ -538,12 +556,14 @@ export function LeftSidebar({
           "h-full bg-[#0a0a0a] border-r border-[#1a1a1a] transition-all duration-300 ease-in-out",
           !collapsed && "w-64",
           collapsed && !isHovered && "w-16",
-          collapsed && isHovered && "w-64"
+          collapsed && isHovered && !disableHoverBehavior && "w-64"
         )}
         style={{
-          width: collapsed 
-            ? (isHovered ? '256px' : '64px') 
-            : '256px',
+          width: disableHoverBehavior
+            ? (collapsed ? '64px' : '256px')
+            : (collapsed 
+                ? (isHovered ? '256px' : '64px') 
+                : '256px'),
           transition: 'width 300ms ease-in-out'
         }}
       >

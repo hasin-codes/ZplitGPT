@@ -5,6 +5,7 @@ import { Send, Database, Mic } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { CommandDock } from './CommandDock'
+import { addMessageToChat, getChatById } from '@/lib/chat-storage'
 
 interface AIInputProps {
   leftCollapsed: boolean
@@ -13,6 +14,7 @@ interface AIInputProps {
   context: string
   onContextChange: (context: string) => void
   onSaveContext: () => void
+  onMessageSent?: () => void
 }
 
 export function AIInput({ 
@@ -21,7 +23,8 @@ export function AIInput({
   onChatNameUpdate,
   context,
   onContextChange,
-  onSaveContext
+  onSaveContext,
+  onMessageSent
 }: AIInputProps) {
   const [contextModalOpen, setContextModalOpen] = useState(false)
   const [commandDockModalOpen, setCommandDockModalOpen] = useState(false)
@@ -60,9 +63,30 @@ export function AIInput({
 
     setIsSending(true)
     
+    const promptText = input.trim()
+    
+    // Create message object
+    const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const now = new Date().toISOString()
+    
+    // Check if this is the first message (chat might not be saved yet)
+    const existingChat = getChatById(selectedChat)
+    const isFirstMessage = !existingChat || existingChat.messages.length === 0
+    
+    // Create message object (empty model responses for now - will be populated when AI responds)
+    const message = {
+      id: messageId,
+      prompt: promptText,
+      timestamp: now,
+      modelResponses: {}
+    }
+    
+    // Save message to chat (this will create and save the chat if it doesn't exist)
+    addMessageToChat(selectedChat, message)
+    
     // Update chat name based on first prompt
-    if (!hasSentFirstMessage && input.trim()) {
-      const chatName = generateChatName(input.trim())
+    if (isFirstMessage && promptText) {
+      const chatName = generateChatName(promptText)
       onChatNameUpdate(selectedChat, chatName)
       setHasSentFirstMessage(true)
     }
@@ -70,9 +94,12 @@ export function AIInput({
     // Simulate sending prompt
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    console.log('Sending prompt:', input)
+    console.log('Sending prompt:', promptText)
     setInput('')
     setIsSending(false)
+    
+    // Notify parent that message was sent (to refresh chat data)
+    onMessageSent?.()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

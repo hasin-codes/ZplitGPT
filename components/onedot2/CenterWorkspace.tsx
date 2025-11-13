@@ -1,12 +1,17 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { DiffModal } from './DiffModal'
 import { ModelColumn, ModelResponse } from './ModelColumn'
+import { MODEL_CONFIGS, getModelConfig } from '@/lib/model-config'
+import { cn } from '@/lib/utils'
+import type { ChatData } from '@/lib/chat-storage'
 
 interface CenterWorkspaceProps {
   leftCollapsed: boolean
   activeModels: string[]
+  chatId?: string
+  chatData?: ChatData
 }
 
 interface ModelColumnData {
@@ -16,430 +21,92 @@ interface ModelColumnData {
   responses: ModelResponse[]
 }
 
-export function CenterWorkspace({ leftCollapsed, activeModels }: CenterWorkspaceProps) {
+export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData }: CenterWorkspaceProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const [models, setModels] = useState<ModelColumnData[]>([
-    {
-      id: 'mixtral-8x7b',
-      name: 'Groq Mixtral 8x7B',
-      color: '#ff6b4a',
-      responses: [
-        {
-          id: '1',
-          version: 'v1',
-          content: `# Understanding Quantum Computing
-
-Quantum computing represents a fundamental shift in how we process information. Unlike classical computers that use bits (0 or 1), quantum computers use quantum bits or "qubits" that can exist in superposition.
-
-## Key Principles
-
-1. **Superposition**: Qubits can be in multiple states simultaneously
-2. **Entanglement**: Qubits can be correlated in ways that classical bits cannot
-3. **Interference**: Quantum states can interfere constructively or destructively
-
-## Applications
-
-- Cryptography and security
-- Drug discovery and molecular modeling
-- Optimization problems
-- Machine learning and AI
-
-The field is rapidly evolving with companies like IBM, Google, and startups making significant advances in hardware and algorithms.`,
-          timestamp: '2024-01-15T10:30:00Z',
-          latency: 1.2,
-          tokens: 156
-        }
-      ]
-    },
-    {
-      id: 'llama-3.1-70b',
-      name: 'Groq Llama 3.1 70B',
-      color: '#4a9eff',
-      responses: [
-        {
-          id: '2',
-          version: 'v1',
-          content: `# Quantum Computing: A Revolutionary Paradigm
-
-Quantum computing harnesses the strange properties of quantum mechanics to solve problems that are intractable for classical computers.
-
-## Core Concepts
-
-### Qubits and Superposition
-Unlike classical bits that are either 0 or 1, qubits leverage superposition to exist in multiple states at once. This exponential scaling enables quantum computers to process vast amounts of information simultaneously.
-
-### Quantum Entanglement
-When qubits become entangled, measuring one instantly affects the other, regardless of distance. This "spooky action at a distance" enables powerful computational correlations.
-
-## Practical Impact
-
-**Current Applications:**
-- Quantum chemistry simulations
-- Financial portfolio optimization
-- Weather prediction models
-- Cryptographic analysis
-
-**Future Potential:**
-- Breaking current encryption standards
-- Simulating complex biological systems
-- Revolutionizing artificial intelligence
-
-The quantum advantage becomes apparent for specific problem classes where quantum algorithms offer exponential speedups over their classical counterparts.`,
-          timestamp: '2024-01-15T10:31:00Z',
-          latency: 0.8,
-          tokens: 189
-        }
-      ]
-    },
-    {
-      id: 'gpt-3.5-turbo',
-      name: 'OpenAI GPT-3.5 Turbo',
-      color: '#10a37f',
-      responses: [
-        {
-          id: '3',
-          version: 'v1',
-          content: `# Quantum Computing Explained
-
-Quantum computing is an emerging technology that uses quantum mechanical phenomena to process information in fundamentally new ways.
-
-## What Makes Quantum Computing Different?
-
-### Quantum Bits (Qubits)
-- Classical bits: 0 or 1
-- Quantum bits: 0, 1, or both simultaneously (superposition)
-
-### Key Quantum Phenomena
-
-**Superposition**
-- Allows qubits to exist in multiple states at once
-- Enables parallel processing of information
-
-**Entanglement**
-- Creates correlations between qubits
-- Allows for complex computational relationships
-
-**Quantum Interference**
-- Can amplify correct answers and cancel wrong ones
-- Essential for quantum algorithm speedups
-
-## Real-World Applications
-
-1. **Cryptography**: Breaking and creating secure communications
-2. **Drug Discovery**: Simulating molecular interactions
-3. **Financial Modeling**: Optimizing complex portfolios
-4. **Artificial Intelligence**: Enhancing machine learning algorithms
-
-## Current State
-
-Major tech companies including Google, IBM, Microsoft, and various startups are racing to build practical quantum computers. While we're still in early stages, progress is accelerating rapidly.
-
-The field represents one of the most exciting frontiers in modern technology.`,
-          timestamp: '2024-01-15T10:32:00Z',
-          latency: 1.5,
-          tokens: 167
-        }
-      ]
-    },
-    {
-      id: 'claude-3-sonnet',
-      name: 'Anthropic Claude 3 Sonnet',
-      color: '#d97757',
-      responses: [
-        {
-          id: '4',
-          version: 'v1',
-          content: `# Quantum Computing: An Introduction
-
-Quantum computing leverages quantum mechanics to process information in ways that classical computers cannot match.
-
-## Foundational Principles
-
-### Superposition
-A qubit can exist in a combination of 0 and 1 states simultaneously, enabling massive parallelism in computation.
-
-### Entanglement
-Quantum particles can be correlated such that the state of one instantly influences another, regardless of distance.
-
-### Measurement
-Observing a quantum state causes it to "collapse" into a definite classical state.
-
-## Practical Applications
-
-- **Cryptography**: Quantum key distribution for secure communication
-- **Optimization**: Solving complex logistics and scheduling problems
-- **Simulation**: Modeling molecular and chemical processes
-- **Machine Learning**: Quantum algorithms for pattern recognition
-
-## Challenges
-
-Building practical quantum computers faces significant hurdles:
-- Maintaining quantum coherence
-- Error correction
-- Scaling to large numbers of qubits
-- Operating at near-absolute zero temperatures
-
-The technology is still in its infancy but shows tremendous promise.`,
-          timestamp: '2024-01-15T10:33:00Z',
-          latency: 1.1,
-          tokens: 142
-        }
-      ]
-    },
-    {
-      id: 'gemini-pro',
-      name: 'Google Gemini Pro',
-      color: '#4285f4',
-      responses: [
-        {
-          id: '5',
-          version: 'v1',
-          content: `# The Quantum Revolution
-
-Quantum computing is poised to revolutionize computing by exploiting quantum mechanical properties.
-
-## Core Quantum Principles
-
-**Superposition**: Unlike classical bits that are either 0 or 1, qubits can be both simultaneously. This allows quantum computers to explore many solutions in parallel.
-
-**Entanglement**: Quantum particles can be linked so that measuring one affects the other instantaneously, even across vast distances.
-
-**Quantum Tunneling**: Particles can pass through energy barriers, enabling novel computational approaches.
-
-## Industry Impact
-
-### Healthcare
-- Drug discovery acceleration
-- Protein folding simulation
-- Personalized medicine optimization
-
-### Finance
-- Portfolio optimization
-- Risk analysis
-- Fraud detection
-
-### Technology
-- AI and machine learning enhancement
-- Materials science
-- Climate modeling
-
-## Current Progress
-
-Companies like IBM, Google, and IonQ are making rapid strides. Google claimed "quantum supremacy" in 2019, and the field continues to advance exponentially.`,
-          timestamp: '2024-01-15T10:34:00Z',
-          latency: 0.9,
-          tokens: 178
-        }
-      ]
-    },
-    {
-      id: 'mistral-7b',
-      name: 'Mistral 7B',
-      color: '#ff7000',
-      responses: [
-        {
-          id: '6',
-          version: 'v1',
-          content: `# Quantum Computing Overview
-
-Quantum computing represents a paradigm shift in computation, utilizing quantum mechanics to solve complex problems.
-
-## Key Concepts
-
-### Qubits
-The fundamental unit of quantum information. Unlike classical bits, qubits can exist in superposition states.
-
-### Quantum Gates
-Operations that manipulate qubit states, analogous to logic gates in classical computing but with quantum properties.
-
-### Decoherence
-The loss of quantum properties due to environmental interference - a major challenge in quantum computing.
-
-## Applications
-
-1. Cryptanalysis and quantum-resistant encryption
-2. Optimization problems (traveling salesman, resource allocation)
-3. Quantum chemistry and materials science
-4. Machine learning and neural networks
-
-## Timeline
-
-- 1980s: Theoretical foundations laid
-- 2000s: First experimental quantum computers
-- 2010s: Cloud-based quantum computing access
-- 2020s: Approaching practical quantum advantage
-
-The future of computing is quantum.`,
-          timestamp: '2024-01-15T10:35:00Z',
-          latency: 1.3,
-          tokens: 152
-        }
-      ]
-    },
-    {
-      id: 'qwen-72b',
-      name: 'Qwen 72B',
-      color: '#ff6a00',
-      responses: [
-        {
-          id: '7',
-          version: 'v1',
-          content: `# Quantum Computing Technology
-
-Quantum computing utilizes quantum mechanics principles to achieve computational capabilities beyond classical systems.
-
-## Quantum Mechanics in Computing
-
-### Superposition Principle
-Qubits maintain multiple states simultaneously until measurement, enabling parallel computation paths.
-
-### Quantum Entanglement
-Correlations between qubits create powerful computational resources that have no classical analog.
-
-### Quantum Interference
-Constructive and destructive interference amplifies correct solutions while suppressing incorrect ones.
-
-## Real-World Use Cases
-
-**Pharmaceutical Industry**
-- Molecular simulation for drug discovery
-- Protein structure prediction
-- Treatment optimization
-
-**Financial Sector**
-- Risk assessment modeling
-- Trading strategy optimization
-- Portfolio diversification
-
-**Artificial Intelligence**
-- Enhanced training algorithms
-- Pattern recognition improvements
-- Optimization of neural networks
-
-The quantum computing industry is rapidly maturing with significant investments from tech giants and startups alike.`,
-          timestamp: '2024-01-15T10:36:00Z',
-          latency: 1.0,
-          tokens: 165
-        }
-      ]
-    },
-    {
-      id: 'deepseek-coder',
-      name: 'DeepSeek Coder',
-      color: '#1a56db',
-      responses: [
-        {
-          id: '8',
-          version: 'v1',
-          content: `# Quantum Computing Architecture
-
-Quantum computers leverage quantum mechanical phenomena to perform calculations that would be impractical for classical computers.
-
-## Technical Foundation
-
-### Qubit Implementation
-- Superconducting circuits (IBM, Google)
-- Trapped ions (IonQ, Honeywell)
-- Topological qubits (Microsoft)
-- Photonic systems (Xanadu)
-
-### Quantum Algorithms
-- **Shor's Algorithm**: Integer factorization
-- **Grover's Algorithm**: Database search
-- **VQE**: Variational quantum eigensolver
-- **QAOA**: Quantum approximate optimization
-
-## Development Challenges
-
-1. Quantum error correction
-2. Scalability issues
-3. Maintaining coherence times
-4. Temperature requirements
-5. Software development tools
-
-## Industry Adoption
-
-Major players investing in quantum:
-- IBM Quantum Network
-- Amazon Braket
-- Microsoft Azure Quantum
-- Google Quantum AI
-
-The quantum ecosystem is expanding rapidly with new frameworks, languages, and cloud platforms emerging.`,
-          timestamp: '2024-01-15T10:37:00Z',
-          latency: 1.4,
-          tokens: 195
-        }
-      ]
-    },
-    {
-      id: 'glm-4',
-      name: 'Zhipu GLM-4',
-      color: '#5b8def',
-      responses: [
-        {
-          id: '9',
-          version: 'v1',
-          content: `# Understanding Quantum Computing
-
-Quantum computing harnesses quantum mechanical properties to solve computational problems more efficiently than classical computers.
-
-## Quantum Mechanics Fundamentals
-
-### Wave-Particle Duality
-Quantum objects exhibit both wave and particle properties, fundamental to quantum computation.
-
-### Uncertainty Principle
-Cannot simultaneously know exact position and momentum - affects measurement in quantum systems.
-
-### Quantum Tunneling
-Particles can traverse energy barriers, enabling novel computational pathways.
-
-## Commercial Applications
-
-**Logistics Optimization**
-- Route planning
-- Supply chain management
-- Warehouse optimization
-
-**Energy Sector**
-- Grid optimization
-- Battery material discovery
-- Nuclear fusion modeling
-
-**Telecommunications**
-- Quantum networks
-- Secure communication protocols
-- Signal processing
-
-## Future Outlook
-
-Quantum computing is transitioning from research to practical applications. The next decade will likely see:
-- Quantum advantage in specific domains
-- Hybrid classical-quantum systems
-- Quantum machine learning breakthroughs
-- Standardization of quantum software
-
-We are witnessing the dawn of the quantum era.`,
-          timestamp: '2024-01-15T10:38:00Z',
-          latency: 1.2,
-          tokens: 183
-        }
-      ]
+  
+  // Convert chat data to model column format
+  const models = useMemo<ModelColumnData[]>(() => {
+    if (!chatData || !chatData.messages || chatData.messages.length === 0) {
+      // No messages - return empty models for active models only
+      return activeModels
+        .map(modelId => {
+          const config = getModelConfig(modelId)
+          if (!config) return null
+          return {
+            id: config.id,
+            name: config.name,
+            color: config.color,
+            responses: []
+          }
+        })
+        .filter((m): m is ModelColumnData => m !== null)
     }
-  ])
 
-  const [activeVersions, setActiveVersions] = useState<Record<string, string>>({
-    'mixtral-8x7b': 'v1',
-    'llama-3.1-70b': 'v1',
-    'gpt-3.5-turbo': 'v1',
-    'claude-3-sonnet': 'v1',
-    'gemini-pro': 'v1',
-    'mistral-7b': 'v1',
-    'qwen-72b': 'v1',
-    'deepseek-coder': 'v1',
-    'glm-4': 'v1'
+    // Get the latest message (most recent)
+    const latestMessage = chatData.messages[chatData.messages.length - 1]
+    if (!latestMessage || !latestMessage.modelResponses) {
+      return []
+    }
+
+    // Convert model responses to ModelColumnData format
+    return activeModels
+      .map(modelId => {
+        const config = getModelConfig(modelId)
+        if (!config) return null
+
+        const modelResponses = latestMessage.modelResponses[modelId] || []
+        const responses: ModelResponse[] = modelResponses.map((resp, index) => ({
+          id: resp.id,
+          version: resp.version || `v${index + 1}`,
+          content: resp.content,
+          timestamp: resp.timestamp,
+          latency: resp.latency || 0,
+          tokens: resp.tokens || 0
+        }))
+
+        return {
+          id: config.id,
+          name: config.name,
+          color: config.color,
+          responses
+        }
+      })
+      .filter((m): m is ModelColumnData => m !== null)
+  }, [chatData, activeModels])
+
+  const [modelsState, setModelsState] = useState<ModelColumnData[]>(models)
+  
+  // Update models when chatData or activeModels change
+  useEffect(() => {
+    setModelsState(models)
+  }, [models])
+
+  // Initialize active versions based on available responses
+  const [activeVersions, setActiveVersions] = useState<Record<string, string>>(() => {
+    const versions: Record<string, string> = {}
+    models.forEach(model => {
+      if (model.responses.length > 0) {
+        versions[model.id] = model.responses[0].version
+      }
+    })
+    return versions
   })
+
+  // Update active versions when models change
+  useEffect(() => {
+    setActiveVersions(prev => {
+      const newVersions: Record<string, string> = {}
+      models.forEach(model => {
+        if (model.responses.length > 0) {
+          // Keep existing version if it exists and is valid, otherwise use first response
+          const existingVersion = prev[model.id]
+          const isValidVersion = existingVersion && model.responses.some(r => r.version === existingVersion)
+          newVersions[model.id] = isValidVersion ? existingVersion : model.responses[0].version
+        }
+      })
+      return { ...prev, ...newVersions }
+    })
+  }, [models])
 
   const [diffModal, setDiffModal] = useState<{
     isOpen: boolean
@@ -455,7 +122,7 @@ We are witnessing the dawn of the quantum era.`,
   })
 
   const addNewVersion = (modelId: string) => {
-    setModels(prev => prev.map(model => {
+    setModelsState(prev => prev.map(model => {
       if (model.id === modelId) {
         const newVersion = `v${model.responses.length + 1}`
         const newResponse: ModelResponse = {
@@ -474,7 +141,7 @@ We are witnessing the dawn of the quantum era.`,
       return model
     }))
     setActiveVersions(prev => {
-      const model = models.find(m => m.id === modelId)
+      const model = modelsState.find(m => m.id === modelId)
       const numResponses = model ? model.responses.length : 0
       return {
         ...prev,
@@ -492,7 +159,7 @@ We are witnessing the dawn of the quantum era.`,
 
   const openDiffModal = (modelId: string) => {
     // Get all active models (all models that are currently selected/visible)
-    const activeModelsList = models.filter(model => activeModels.includes(model.id))
+    const activeModelsList = modelsState.filter(model => activeModels.includes(model.id))
     
     if (activeModelsList.length === 0) return
     
@@ -517,7 +184,7 @@ We are witnessing the dawn of the quantum era.`,
     }
   }
 
-  const activeModelsList = models.filter(model => activeModels.includes(model.id))
+  const activeModelsList = modelsState.filter(model => activeModels.includes(model.id))
   const activeCount = activeModelsList.length
   
   // Calculate column width: mobile shows 1.05 columns, desktop shows 3 columns
@@ -633,10 +300,13 @@ We are witnessing the dawn of the quantum era.`,
   }, [activeCount, activeModelsList])
 
   return (
-    <div className="flex-1 bg-black overflow-hidden w-full">
+    <div className="h-full w-full bg-black overflow-hidden">
       <div 
         ref={scrollContainerRef}
-        className="h-full w-full flex overflow-x-auto gap-1.5 md:gap-3"
+        className={cn(
+          "h-full w-full flex overflow-x-auto",
+          chatId ? "gap-1.5 md:gap-3" : "gap-0"
+        )}
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: '#333333 #0a0a0a',
@@ -645,21 +315,27 @@ We are witnessing the dawn of the quantum era.`,
           padding: '12px'
         }}
       >
-        {activeModelsList.map((model) => (
+        {activeModelsList.length > 0 ? (
+          activeModelsList.map((model) => (
           <ModelColumn
             key={model.id}
             id={model.id}
             name={model.name}
             color={model.color}
             responses={model.responses}
-            activeVersion={activeVersions[model.id] || 'v1'}
+              activeVersion={activeVersions[model.id] || (model.responses[0]?.version || 'v1')}
             onVersionChange={(version) => handleVersionChange(model.id, version)}
             onAddVersion={() => addNewVersion(model.id)}
             onOpenDiff={() => openDiffModal(model.id)}
             width={getColumnWidth()}
-            className="md:!w-[calc((100%-12px)/3)]"
+            className={chatId ? "md:!w-[calc((100%-12px)/3)]" : "md:!w-[calc(100%/3)]"}
           />
-        ))}
+          ))
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-[#666666] text-sm">
+            No messages yet. Start a conversation to see model responses here.
+          </div>
+        )}
       </div>
 
       {/* Diff Modal */}
