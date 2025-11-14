@@ -39,71 +39,109 @@ The name ZplitGPT comes from splitting your screen and perspective to see AI beh
 - **Side-by-Side Comparison**: Run multiple models simultaneously in separate columns to see differences in real-time
 - **Bring Your Own API Keys**: Use your own API keys for complete budget control—you pay providers directly
 - **Direct API Integration**: No middle layer, no fake tokens, no abstraction—just direct API calls
-- **Real-Time Responses**: See how different models respond to the same prompt simultaneously with streaming responses
-
-### Flow: Advanced Context Management System
-
-Flow is a comprehensive context management system that gives you complete control over how AI models understand and respond to your prompts. It separates global system context from chat-specific memory, allowing you to build persistent knowledge bases that work across all your conversations.
-
-**System Context (Global Context)**
-- Create and manage multiple system context definitions that apply globally across all chats
-- Each system context acts as a persistent instruction set that shapes how models understand your requests
-- Add unlimited system contexts for different roles, expertise areas, or behavioral patterns
-- Examples include "You are an expert software engineer specializing in React and TypeScript" or "You are a creative writing assistant focused on character development"
-- System contexts are stored locally and persist across sessions
-- Delete or modify system contexts at any time with full control over your global context library
-
-**Chat Memory (Chat-Specific Context)**
-- Move system contexts into chat memory to apply them to specific conversations
-- Chat memory allows you to activate relevant system contexts for individual chats without affecting others
-- When you move a system context to chat memory, it becomes active for that conversation only
-- Visual indicators show which system contexts are currently active in each chat
-- Newly added contexts to chat memory are highlighted with visual feedback
-- Remove contexts from chat memory without deleting the original system context
-
-**Flow Interface**
-- Access Flow through a dedicated modal with a two-column interface
-- Left column displays all available system contexts with options to add, delete, or move to memory
-- Right column shows active chat memories for the current conversation
-- One-click transfer of contexts between system context and chat memory
-- Clear visual distinction between selected and unselected contexts
-- Bulk operations to clear all system contexts or all chat memories
-- Responsive design that maintains the 2:1 aspect ratio for optimal viewing
-
-**Context Persistence**
-- All system contexts and chat memories are stored in browser localStorage
-- Contexts persist across browser sessions and page refreshes
-- No external database required for context management
-- Full control over your context data with the ability to export or clear at any time
+- **Real-Time Responses**: See how different models respond to the same prompt simultaneously
 
 ### Advanced Control
 
 - **Full Model Control**: Choose any model your API keys support—no artificial restrictions
 - **Advanced Parameters**: Fine-tune temperature, top-p, top-k, frequency penalty, presence penalty, and stop sequences
-- **Parameter Presets**: Save and reuse custom parameter configurations for different use cases
-- **System Context Integration**: Flow system contexts automatically apply to all model requests, ensuring consistent behavior across comparisons
-- **Chat Context Control**: Activate specific contexts per chat through Flow's chat memory system
+- **Parameter Presets**: Save and reuse custom parameter configurations
+- **Personalized Context Management**: Set personalized prompts that apply to all models for consistent comparisons
+
+### Context Management System
+
+ZplitGPT provides a sophisticated three-tier context management system that gives you complete control over how AI models understand your instructions and remember information across conversations. This system is designed to optimize token usage while maintaining precise control over what context is included in each conversation.
+
+#### System Context (Global Context)
+
+System Context is your global instruction set that applies across all chats and conversations. This is managed through the System Context component accessible from the top navigation bar. Think of it as your default personality and behavior settings for all AI interactions.
+
+**How it works:**
+- System Context is stored globally and persists across all chats
+- When you set a System Context, it becomes the base instruction for all models in all conversations
+- You can create, save, and manage multiple System Context templates
+- Each System Context can define role, expertise, communication style, or specific guidelines
+- The System Context is automatically included in every API call, ensuring consistent behavior across all models
+
+**Use cases:**
+- Define your preferred AI assistant personality ("You are a helpful technical assistant")
+- Set domain expertise ("You are an expert React developer")
+- Establish communication preferences ("Provide concise, code-first responses")
+- Create specialized personas for different types of work
+
+**Current implementation:** System Context is managed through the System Context modal accessible via the Command Dock button in the top navigation. All contexts are stored in browser localStorage and persist across sessions.
+
+#### Chat Memory
+
+Chat Memory is conversation-specific context that applies only to individual chats. This is managed through the Chat Memory component, accessible via the Brain icon in the top navigation. Unlike System Context which is global, Chat Memory allows you to provide context that is specific to a particular conversation thread.
+
+**How it works:**
+- Chat Memory is stored per chat and only included in that specific conversation
+- You can add multiple memory items to a single chat
+- Chat Memory supplements System Context with conversation-specific information
+- Memories can include user preferences, project details, ongoing tasks, or context from previous messages in that chat
+- Each chat maintains its own independent memory collection
+
+**Use cases:**
+- Store project-specific information ("Working on a Next.js e-commerce site")
+- Remember user preferences for that conversation ("User prefers TypeScript examples")
+- Track conversation context ("Discussing authentication implementation")
+- Maintain thread-specific knowledge that shouldn't apply globally
+
+**Current implementation:** Chat Memory is managed through the Chat Memory modal. Memories are stored in browser localStorage with chat-specific keys, allowing each conversation to maintain its own context independently.
+
+#### Flow: Context Selection System
+
+Flow is ZplitGPT's intelligent context management interface that solves a critical problem: token optimization when starting new conversations. When you have multiple System Contexts and Chat Memories saved, you don't want to waste tokens by including irrelevant context in every new chat. Flow allows you to selectively choose which contexts to bring into a new conversation.
+
+**The problem Flow solves:**
+- Without Flow, starting a new chat might include all your saved System Contexts and Memories
+- This wastes tokens on irrelevant information
+- It can also confuse models with conflicting or unnecessary context
+- Flow lets you curate exactly what context is relevant for each new conversation
+
+**How Flow works:**
+- Flow Modal displays all your saved System Contexts in the left panel
+- The right panel shows your Chat Memory items
+- You can move System Contexts into Chat Memory by clicking the arrow button
+- When you start a new chat, only the contexts you've selected in Flow are included
+- This gives you precise control over token usage and context relevance
+
+**Workflow:**
+1. Open Flow Modal before starting a new chat
+2. Review your available System Contexts in the left panel
+3. Select relevant contexts by moving them to the Chat Memory panel (right side)
+4. Start your new chat with only the selected contexts included
+5. The LLM receives only the relevant context, saving tokens and improving response quality
+
+**Visual indicators:**
+- Selected contexts are highlighted with an orange border and background tint
+- Newly added contexts to Chat Memory show a cyan "New" badge that fades after 3 seconds
+- The interface clearly shows which contexts are active for the upcoming conversation
+
+**Current implementation:** Flow Modal is accessible through the Flow button and provides a split-panel interface. System Contexts are stored in `Zplitgpt-flow-contexts` in localStorage, while Chat Memories for Flow are stored in `Zplitgpt-flow-memories`. The modal maintains a 2:1 aspect ratio (width to height) for optimal viewing of both panels simultaneously.
+
+**Benefits:**
+- Reduces token usage by excluding irrelevant context
+- Improves response quality by providing only relevant information
+- Gives you explicit control over what the AI knows in each conversation
+- Prevents context pollution from unrelated previous work
+- Allows you to create focused, purpose-specific conversations
+
+This three-tier system (System Context, Chat Memory, and Flow) provides granular control over context management, enabling you to optimize both token costs and conversation quality. You can maintain a rich library of contexts while ensuring each conversation only includes what's necessary.
 
 ### Organization & Management
 
 - **Project Management**: Organize your comparisons into projects with full chat history
-- **Chat History**: Save and revisit conversations with complete message history
-- **Version Comparison**: Compare different versions of model responses side-by-side within the same conversation
-- **Diff View**: Visual comparison tool that highlights differences between model responses
-- **Context-Aware Conversations**: Each chat maintains its own context state through Flow's chat memory system
-- **Persistent Context Library**: Build a library of system contexts that can be reused across projects and chats
+- **Chat History**: Save and revisit conversations (optional feature with database storage)
+- **Version Comparison**: Compare different versions of model responses side-by-side
+- **Diff View**: Visual comparison of responses from different models
 
 ### Developer Experience
 
-- **Clean Interface**: Minimal, focused UI that prioritizes functionality over decoration
+- **Clean Interface**: Minimal, focused UI that gets out of your way
 - **Transparent Costs**: See exactly what you're paying—no hidden fees or credit confusion
-- **Full Control**: Configure everything exactly as you need it, from API keys to context management
-- **Local-First Architecture**: Context management works entirely in the browser with localStorage, giving you complete data ownership
-- **Responsive Design**: Works seamlessly across desktop and mobile devices with adaptive layouts
-
-### Current Frontend State
-
-This README documents the current frontend implementation of ZplitGPT. The application is actively under development with a focus on building a robust, developer-focused AI aggregation platform. The Flow context management system, multi-model comparison interface, and project organization features are fully functional in the current frontend state. Additional features and improvements are being developed continuously.
+- **Full Control**: Configure everything exactly as you need it
 
 ## Getting Started
 
@@ -139,35 +177,24 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
    - Choose which models to compare from the model selector
    - All models your API keys support are available—no premium restrictions
    
-3. **Set Up Flow Context Management**: 
-   - Click the Flow button in the input interface to open the Flow modal
-   - Create system contexts that define how models should behave globally
-   - Add system contexts for different roles, expertise areas, or behavioral patterns
-   - Move system contexts to chat memory to activate them for specific conversations
-   - System contexts apply to all models in your comparisons, ensuring consistent behavior
-   - Chat memories allow you to customize context per conversation without affecting others
-
-4. **Configure Parameters**: 
+3. **Configure Parameters**: 
    - Adjust temperature, top-p, top-k, and other parameters in Advanced Controls
    - Save parameter presets for quick reuse
-   - System contexts from Flow automatically integrate with your parameter settings
-
-5. **Send Prompts**: 
+   - Set personalized context that applies to all models
+   
+4. **Send Prompts**: 
    - Type your prompt and watch all selected models respond side-by-side
    - See real-time responses as they stream in
-   - Models respond with the context you've configured through Flow
-
-6. **Compare Results**: 
+   
+5. **Compare Results**: 
    - View differences in reasoning, tone, and quality across models
    - Use the diff view to compare responses visually
    - Save versions to compare different iterations
-   - All comparisons respect your Flow context settings
-
-7. **Manage Projects and Context**: 
+   
+6. **Manage Projects**: 
    - Organize your comparisons into projects
-   - Save chat history with associated context states
-   - Revisit and compare past conversations with their original context configurations
-   - Build a library of system contexts that can be reused across projects
+   - Save chat history (optional Pro feature)
+   - Revisit and compare past conversations
 
 ## Pricing & Cost Control
 
@@ -241,6 +268,19 @@ ZplitGPT aggregates models from 15+ AI providers:
 - **Lucide React** - Beautiful icon library
 - **Prisma** - Database ORM (for optional chat history)
 - **Z-AI SDK** - Direct AI API integration
+
+## Current Frontend State
+
+This README documents the current frontend implementation of ZplitGPT. All context management features (System Context, Chat Memory, and Flow) are fully implemented in the frontend using browser localStorage for persistence. The interface provides complete control over context selection and management, with all three tiers of the context system operational and ready for integration with backend API calls.
+
+The frontend architecture supports:
+- Real-time context management through modal interfaces
+- Persistent storage of contexts and memories across browser sessions
+- Visual feedback for context selection and state changes
+- Split-panel interfaces for managing multiple contexts simultaneously
+- Independent storage keys for different context types to prevent conflicts
+
+All features described in this documentation are currently available in the frontend interface and ready for use.
 
 ## Assets
 
