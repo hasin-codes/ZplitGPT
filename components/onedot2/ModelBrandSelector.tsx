@@ -216,10 +216,10 @@ export function ModelBrandSelector({ activeModels, onModelToggle }: ModelBrandSe
   return (
     <div 
       ref={containerRef}
-      className="relative w-full border-b border-[#1a1a1a] bg-[#0a0a0a]"
+      className="relative w-full border-b border-[#1a1a1a] bg-[#0a0a0a] h-[60px] flex items-center"
       style={{ position: 'relative', zIndex: 1 }}
     >
-      <div className="px-4 py-3">
+      <div className="px-4 py-3 w-full">
         <div className="flex items-center gap-1 relative">
           {/* Row 1: Visible brand buttons - fixed position, never moves */}
           <div className="flex flex-1 gap-1 overflow-hidden">

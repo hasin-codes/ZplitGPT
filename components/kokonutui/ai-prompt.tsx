@@ -10,12 +10,13 @@
  * @github: https://github.com/kokonut-labs/kokonutui
  */
 
-import { ArrowRight, Paperclip } from "lucide-react";
+import { ArrowRight, Paperclip, GitBranch } from "lucide-react";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useAutoResizeTextarea } from "@/hooks/use-auto-resize-textarea";
 import Image from "next/image";
+import { FlowModal } from "./FlowModal";
 
 interface AI_PromptProps {
     onMessageSent?: (message: string) => void;
@@ -23,6 +24,7 @@ interface AI_PromptProps {
 
 export default function AI_Prompt({ onMessageSent }: AI_PromptProps) {
     const [value, setValue] = useState("");
+    const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
     const { textareaRef, adjustHeight } = useAutoResizeTextarea({
         minHeight: 72,
         maxHeight: 300,
@@ -46,6 +48,10 @@ export default function AI_Prompt({ onMessageSent }: AI_PromptProps) {
             e.preventDefault();
             handleSend();
         }
+    };
+
+    const handleFlowClick = () => {
+        setIsFlowModalOpen(true);
     };
 
     return (
@@ -127,24 +133,44 @@ export default function AI_Prompt({ onMessageSent }: AI_PromptProps) {
                         </div>
 
                         <div className="h-14 backdrop-blur-md rounded-b-xl flex items-center" style={{ backgroundColor: '#3d3d3d' }}>
-                            <div className="absolute left-3 right-3 bottom-3 flex items-center justify-between w-[calc(100%-24px)]">
-                                {/* Attachment button on the left */}
-                                <label
-                                    className={cn(
-                                        "rounded-lg p-2 bg-black/5 dark:bg-white/5 cursor-pointer",
-                                        "hover:bg-black/10 dark:hover:bg-white/10 focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:ring-blue-500",
-                                        "text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white"
-                                    )}
-                                    aria-label="Attach file"
-                                >
-                                    <input type="file" className="hidden" />
-                                    <Paperclip className="w-4 h-4 transition-colors" />
-                                </label>
+                            <div className="absolute left-3 right-3 bottom-3 flex items-center gap-2 w-[calc(100%-24px)]">
+                                {/* Left side: Attachment and Search buttons */}
+                                <div className="flex items-center gap-2">
+                                    {/* Attachment button */}
+                                    <label
+                                        className={cn(
+                                            "rounded-lg p-2 bg-black/5 dark:bg-white/5 cursor-pointer flex-shrink-0",
+                                            "hover:bg-black/10 dark:hover:bg-white/10 focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:ring-blue-500",
+                                            "text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white"
+                                        )}
+                                        aria-label="Attach file"
+                                    >
+                                        <input type="file" className="hidden" />
+                                        <Paperclip className="w-4 h-4 transition-colors" />
+                                    </label>
+                                    {/* Flow button */}
+                                    <button
+                                        type="button"
+                                        onClick={handleFlowClick}
+                                        className={cn(
+                                            "flex items-center gap-1.5 cursor-pointer transition-all duration-300 ease-in-out",
+                                            "border-2 border-cyan-500 py-1.5 rounded-full px-3 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10"
+                                        )}
+                                        aria-label="Flow"
+                                    >
+                                        <GitBranch className="w-4 h-4 text-cyan-500 flex-shrink-0" />
+                                        <span className="text-cyan-500 font-medium text-sm whitespace-nowrap">
+                                            Flow
+                                        </span>
+                                    </button>
+                                </div>
+                                {/* Spacer to push send button to the right */}
+                                <div className="flex-1" />
                                 {/* Send button on the right */}
                                 <button
                                     type="button"
                                     className={cn(
-                                        "rounded-lg p-2 bg-black/5 dark:bg-white/5",
+                                        "rounded-lg p-2 bg-black/5 dark:bg-white/5 flex-shrink-0",
                                         "hover:bg-black/10 dark:hover:bg-white/10 focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:ring-blue-500",
                                         !value.trim() && "cursor-not-allowed opacity-50"
                                     )}
@@ -167,6 +193,10 @@ export default function AI_Prompt({ onMessageSent }: AI_PromptProps) {
                 </div>
                 </div>
             </div>
+            <FlowModal 
+                isOpen={isFlowModalOpen} 
+                onClose={() => setIsFlowModalOpen(false)} 
+            />
         </div>
     );
 }

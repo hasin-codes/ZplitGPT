@@ -39,27 +39,71 @@ The name ZplitGPT comes from splitting your screen and perspective to see AI beh
 - **Side-by-Side Comparison**: Run multiple models simultaneously in separate columns to see differences in real-time
 - **Bring Your Own API Keys**: Use your own API keys for complete budget control—you pay providers directly
 - **Direct API Integration**: No middle layer, no fake tokens, no abstraction—just direct API calls
-- **Real-Time Responses**: See how different models respond to the same prompt simultaneously
+- **Real-Time Responses**: See how different models respond to the same prompt simultaneously with streaming responses
+
+### Flow: Advanced Context Management System
+
+Flow is a comprehensive context management system that gives you complete control over how AI models understand and respond to your prompts. It separates global system context from chat-specific memory, allowing you to build persistent knowledge bases that work across all your conversations.
+
+**System Context (Global Context)**
+- Create and manage multiple system context definitions that apply globally across all chats
+- Each system context acts as a persistent instruction set that shapes how models understand your requests
+- Add unlimited system contexts for different roles, expertise areas, or behavioral patterns
+- Examples include "You are an expert software engineer specializing in React and TypeScript" or "You are a creative writing assistant focused on character development"
+- System contexts are stored locally and persist across sessions
+- Delete or modify system contexts at any time with full control over your global context library
+
+**Chat Memory (Chat-Specific Context)**
+- Move system contexts into chat memory to apply them to specific conversations
+- Chat memory allows you to activate relevant system contexts for individual chats without affecting others
+- When you move a system context to chat memory, it becomes active for that conversation only
+- Visual indicators show which system contexts are currently active in each chat
+- Newly added contexts to chat memory are highlighted with visual feedback
+- Remove contexts from chat memory without deleting the original system context
+
+**Flow Interface**
+- Access Flow through a dedicated modal with a two-column interface
+- Left column displays all available system contexts with options to add, delete, or move to memory
+- Right column shows active chat memories for the current conversation
+- One-click transfer of contexts between system context and chat memory
+- Clear visual distinction between selected and unselected contexts
+- Bulk operations to clear all system contexts or all chat memories
+- Responsive design that maintains the 2:1 aspect ratio for optimal viewing
+
+**Context Persistence**
+- All system contexts and chat memories are stored in browser localStorage
+- Contexts persist across browser sessions and page refreshes
+- No external database required for context management
+- Full control over your context data with the ability to export or clear at any time
 
 ### Advanced Control
 
 - **Full Model Control**: Choose any model your API keys support—no artificial restrictions
 - **Advanced Parameters**: Fine-tune temperature, top-p, top-k, frequency penalty, presence penalty, and stop sequences
-- **Parameter Presets**: Save and reuse custom parameter configurations
-- **System Context Management**: Set system prompts that apply to all models for consistent comparisons
+- **Parameter Presets**: Save and reuse custom parameter configurations for different use cases
+- **System Context Integration**: Flow system contexts automatically apply to all model requests, ensuring consistent behavior across comparisons
+- **Chat Context Control**: Activate specific contexts per chat through Flow's chat memory system
 
 ### Organization & Management
 
 - **Project Management**: Organize your comparisons into projects with full chat history
-- **Chat History**: Save and revisit conversations (optional feature with database storage)
-- **Version Comparison**: Compare different versions of model responses side-by-side
-- **Diff View**: Visual comparison of responses from different models
+- **Chat History**: Save and revisit conversations with complete message history
+- **Version Comparison**: Compare different versions of model responses side-by-side within the same conversation
+- **Diff View**: Visual comparison tool that highlights differences between model responses
+- **Context-Aware Conversations**: Each chat maintains its own context state through Flow's chat memory system
+- **Persistent Context Library**: Build a library of system contexts that can be reused across projects and chats
 
 ### Developer Experience
 
-- **Clean Interface**: Minimal, focused UI that gets out of your way
+- **Clean Interface**: Minimal, focused UI that prioritizes functionality over decoration
 - **Transparent Costs**: See exactly what you're paying—no hidden fees or credit confusion
-- **Full Control**: Configure everything exactly as you need it
+- **Full Control**: Configure everything exactly as you need it, from API keys to context management
+- **Local-First Architecture**: Context management works entirely in the browser with localStorage, giving you complete data ownership
+- **Responsive Design**: Works seamlessly across desktop and mobile devices with adaptive layouts
+
+### Current Frontend State
+
+This README documents the current frontend implementation of ZplitGPT. The application is actively under development with a focus on building a robust, developer-focused AI aggregation platform. The Flow context management system, multi-model comparison interface, and project organization features are fully functional in the current frontend state. Additional features and improvements are being developed continuously.
 
 ## Getting Started
 
@@ -95,24 +139,35 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
    - Choose which models to compare from the model selector
    - All models your API keys support are available—no premium restrictions
    
-3. **Configure Parameters**: 
+3. **Set Up Flow Context Management**: 
+   - Click the Flow button in the input interface to open the Flow modal
+   - Create system contexts that define how models should behave globally
+   - Add system contexts for different roles, expertise areas, or behavioral patterns
+   - Move system contexts to chat memory to activate them for specific conversations
+   - System contexts apply to all models in your comparisons, ensuring consistent behavior
+   - Chat memories allow you to customize context per conversation without affecting others
+
+4. **Configure Parameters**: 
    - Adjust temperature, top-p, top-k, and other parameters in Advanced Controls
    - Save parameter presets for quick reuse
-   - Set system context that applies to all models
-   
-4. **Send Prompts**: 
+   - System contexts from Flow automatically integrate with your parameter settings
+
+5. **Send Prompts**: 
    - Type your prompt and watch all selected models respond side-by-side
    - See real-time responses as they stream in
-   
-5. **Compare Results**: 
+   - Models respond with the context you've configured through Flow
+
+6. **Compare Results**: 
    - View differences in reasoning, tone, and quality across models
    - Use the diff view to compare responses visually
    - Save versions to compare different iterations
-   
-6. **Manage Projects**: 
+   - All comparisons respect your Flow context settings
+
+7. **Manage Projects and Context**: 
    - Organize your comparisons into projects
-   - Save chat history (optional Pro feature)
-   - Revisit and compare past conversations
+   - Save chat history with associated context states
+   - Revisit and compare past conversations with their original context configurations
+   - Build a library of system contexts that can be reused across projects
 
 ## Pricing & Cost Control
 
@@ -124,7 +179,7 @@ ZplitGPT uses a transparent pricing model that gives you complete control:
 2. **Your API Costs**: You pay AI providers directly using your own API keys—we never touch your API costs
 3. **Optional Database Features**: 
    - **Free Tier**: Basic usage without saved context or chat history
-   - **Pro Tier**: Save system context and chat history (covers database storage costs, similar to ChatGPT's model)
+   - **Pro Tier**: Save personalized context and chat history (covers database storage costs, similar to ChatGPT's model)
 
 ### Why This Model?
 

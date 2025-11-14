@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Send, Database, Mic } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { CommandDock } from './CommandDock'
+import { Textarea } from '@/components/ui/textarea'
 import { addMessageToChat, getChatById } from '@/lib/chat-storage'
 
 interface AIInputProps {
@@ -170,15 +170,26 @@ export function AIInput({
       <Dialog open={contextModalOpen} onOpenChange={setContextModalOpen}>
         <DialogContent className="w-[95vw] max-w-[95vw] h-auto max-h-[95vh] bg-[#0a0a0a] border-[#1a1a1a] text-[#f5f5f5] overflow-hidden flex flex-col p-0 md:max-w-lg md:max-h-[85vh]">
           <DialogHeader className="px-4 pt-4 pb-2 flex-shrink-0">
-            <DialogTitle className="sr-only">System Context</DialogTitle>
+            <DialogTitle className="text-[#f5f5f5] text-lg font-semibold">System Context</DialogTitle>
           </DialogHeader>
-          <div className="overflow-y-auto px-4 pb-4">
-            <CommandDock
-              context={context}
-              onContextChange={onContextChange}
-              onSaveContext={onSaveContext}
-              autoOpen={true}
-            />
+          <div className="overflow-y-auto px-4 pb-4 flex-1">
+            <div className="space-y-4">
+              <Textarea
+                value={context}
+                onChange={(e) => onContextChange(e.target.value)}
+                placeholder="Define personalized context or instructions for all models..."
+                className="bg-[#111111] border-[#333333] text-[#f5f5f5] placeholder-[#666666] min-h-[200px] resize-none"
+              />
+              <Button
+                onClick={() => {
+                  onSaveContext()
+                  setContextModalOpen(false)
+                }}
+                className="w-full bg-[#ff4f2b] hover:bg-[#ff6b4a] text-white"
+              >
+                Save Context
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -187,15 +198,26 @@ export function AIInput({
       <Dialog open={commandDockModalOpen} onOpenChange={setCommandDockModalOpen}>
         <DialogContent className="w-[95vw] max-w-[95vw] h-auto max-h-[95vh] bg-[#0a0a0a] border-[#1a1a1a] text-[#f5f5f5] overflow-hidden flex flex-col p-0 md:max-w-lg md:max-h-[85vh]">
           <DialogHeader className="px-4 pt-4 pb-2 flex-shrink-0">
-            <DialogTitle className="sr-only">Command Dock</DialogTitle>
+            <DialogTitle className="text-[#f5f5f5] text-lg font-semibold">Command Dock</DialogTitle>
           </DialogHeader>
-          <div className="overflow-y-auto px-4 pb-4">
-            <CommandDock
-              context={context}
-              onContextChange={onContextChange}
-              onSaveContext={onSaveContext}
-              autoOpen={true}
-            />
+          <div className="overflow-y-auto px-4 pb-4 flex-1">
+            <div className="space-y-4">
+              <Textarea
+                value={context}
+                onChange={(e) => onContextChange(e.target.value)}
+                placeholder="Define personalized context or instructions for all models..."
+                className="bg-[#111111] border-[#333333] text-[#f5f5f5] placeholder-[#666666] min-h-[200px] resize-none"
+              />
+              <Button
+                onClick={() => {
+                  onSaveContext()
+                  setCommandDockModalOpen(false)
+                }}
+                className="w-full bg-[#ff4f2b] hover:bg-[#ff6b4a] text-white"
+              >
+                Save Context
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

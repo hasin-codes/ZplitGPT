@@ -1,32 +1,41 @@
 'use client'
 
 import { useState } from 'react'
-import { Menu, SlidersHorizontal } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { CommandDock } from './CommandDock'
-import { AdvanceControls } from './AdvanceControls'
+import { ChatMemory } from './ChatMemory'
 import { ModelBrandSelector } from './ModelBrandSelector'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ContextMemoryModal } from './ContextMemoryModal'
 
 interface TopBarProps {
   context: string
   onContextChange: (context: string) => void
   onSaveContext: () => void
+  memory: string
+  onMemoryChange: (memory: string) => void
+  onSaveMemory: () => void
   activeModels: string[]
   onModelToggle: (modelId: string) => void
   onSidebarToggle: () => void
+  chatId?: string
 }
 
 export function TopBar({
   context,
   onContextChange,
   onSaveContext,
+  memory,
+  onMemoryChange,
+  onSaveMemory,
   activeModels,
   onModelToggle,
-  onSidebarToggle
+  onSidebarToggle,
+  chatId
 }: TopBarProps) {
-  const [advanceControlsOpen, setAdvanceControlsOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'context' | 'memory'>('context')
 
   return (
     <>
@@ -42,16 +51,6 @@ export function TopBar({
           >
             <Menu className="h-5 w-5" />
           </Button>
-
-          {/* Advance Controls Icon */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setAdvanceControlsOpen(true)}
-            className="h-9 w-9 text-[#b3b3b3] hover:text-[#ff4f2b] hover:bg-[#1a1a1a] flex-shrink-0"
-          >
-            <SlidersHorizontal className="h-5 w-5" />
-          </Button>
         </div>
 
         {/* App Logo */}
@@ -64,37 +63,27 @@ export function TopBar({
             className="w-8 h-8"
           />
         </div>
-
-        {/* Advance Controls Modal */}
-        <Dialog open={advanceControlsOpen} onOpenChange={setAdvanceControlsOpen}>
-          <DialogContent className="w-[95vw] max-w-[95vw] h-auto max-h-[95vh] bg-[#0a0a0a] border-[#1a1a1a] text-[#f5f5f5] overflow-hidden flex flex-col p-0 md:max-w-lg md:max-h-[85vh]">
-            <DialogHeader className="px-4 pt-4 pb-2 flex-shrink-0">
-              <DialogTitle className="sr-only">Advanced Controls</DialogTitle>
-            </DialogHeader>
-            <div className="overflow-y-auto px-4 pb-4">
-              <AdvanceControls autoOpen={true} />
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Desktop TopBar - Original Layout */}
       <div className="hidden md:flex w-full">
-        <div className="w-[28%] border-r border-[#1a1a1a]">
-          <CommandDock
-            context={context}
-            onContextChange={onContextChange}
-            onSaveContext={onSaveContext}
-          />
+        <div className="w-[18%] border-r border-[#1a1a1a]">
+          <CommandDock onOpenModal={() => {
+            setActiveTab('context')
+            setModalOpen(true)
+          }} />
         </div>
-        <div className="w-[44%] border-r border-[#1a1a1a]">
+        <div className="w-[64%] border-r border-[#1a1a1a]">
           <ModelBrandSelector
             activeModels={activeModels}
             onModelToggle={onModelToggle}
           />
         </div>
-        <div className="w-[28%]">
-          <AdvanceControls />
+        <div className="w-[18%]">
+          <ChatMemory onOpenModal={() => {
+            setActiveTab('memory')
+            setModalOpen(true)
+          }} />
         </div>
       </div>
 
@@ -105,6 +94,20 @@ export function TopBar({
           onModelToggle={onModelToggle}
         />
       </div>
+
+      {/* Context & Memory Modal */}
+      <ContextMemoryModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        context={context}
+        onContextChange={onContextChange}
+        onSaveContext={onSaveContext}
+        memory={memory}
+        onMemoryChange={onMemoryChange}
+        onSaveMemory={onSaveMemory}
+        chatId={chatId}
+        defaultTab={activeTab}
+      />
     </>
   )
 }

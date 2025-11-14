@@ -97,6 +97,48 @@ export function deleteChat(chatId: string): void {
 }
 
 /**
+ * Clone a chat (create a copy with new ID)
+ */
+export function cloneChat(chatId: string): ChatData | null {
+  if (typeof window === 'undefined') return null
+  
+  try {
+    const originalChat = getChatById(chatId)
+    if (!originalChat) return null
+    
+    const newChatId = `chat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const now = new Date().toISOString()
+    
+    const clonedChat: ChatData = {
+      ...originalChat,
+      id: newChatId,
+      title: `${originalChat.title} (Copy)`,
+      timestamp: now,
+      lastModified: now,
+      messages: originalChat.messages.map(msg => ({
+        ...msg,
+        id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        modelResponses: Object.fromEntries(
+          Object.entries(msg.modelResponses).map(([modelId, responses]) => [
+            modelId,
+            responses.map(resp => ({
+              ...resp,
+              id: `resp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+            }))
+          ])
+        )
+      }))
+    }
+    
+    saveChat(clonedChat)
+    return clonedChat
+  } catch (error) {
+    console.error('Error cloning chat:', error)
+    return null
+  }
+}
+
+/**
  * Get chat history (for sidebar)
  */
 export function getChatHistory(): Array<{ id: string; title: string; timestamp: string }> {

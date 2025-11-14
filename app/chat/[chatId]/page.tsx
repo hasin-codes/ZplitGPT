@@ -71,6 +71,7 @@ export default function ChatPage() {
   }, [chatId, leftCollapsed, isMobile]) // Run when chatId changes
   const [activeModels, setActiveModels] = useState(['gpt-3.5-turbo', 'claude-3-sonnet', 'gemini-pro', 'mistral-7b'])
   const [context, setContext] = useState('You are a helpful AI assistant that provides clear, accurate, and concise responses.')
+  const [memory, setMemory] = useState('')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [currentChat, setCurrentChat] = useState<ChatData | null>(null)
   
@@ -186,6 +187,11 @@ export default function ChatPage() {
     console.log('Context saved:', context)
   }
 
+  const handleSaveMemory = () => {
+    localStorage.setItem(`Zplitgpt-memory-${chatId}`, memory)
+    console.log('Memory saved:', memory)
+  }
+
   // Project handlers
   const handleProjectCreate = (name: string) => {
     const newProject: Project = {
@@ -220,6 +226,55 @@ export default function ChatPage() {
   const handleChatRename = (chatId: string, name: string) => {
     updateChatTitle(chatId, name)
     // Refresh chat history
+    const history = getChatHistory()
+    setChats(history.map(chat => ({
+      id: chat.id,
+      title: chat.title,
+      timestamp: chat.timestamp
+    })))
+  }
+
+  const handleProjectDelete = (projectId: string) => {
+    setProjects(prev => prev.filter(p => p.id !== projectId))
+    if (selectedProject === projectId) {
+      setSelectedProject('default')
+    }
+  }
+
+  const handleProjectClone = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId)
+    if (project) {
+      const newProject: Project = {
+        id: `project-${Date.now()}`,
+        name: `${project.name} (Copy)`,
+        lastModified: 'Just now'
+      }
+      setProjects(prev => [newProject, ...prev])
+      setSelectedProject(newProject.id)
+    }
+  }
+
+  const handleChatDelete = (chatId: string) => {
+    // Chat is already deleted by the component, just refresh the list
+    const history = getChatHistory()
+    setChats(history.map(chat => ({
+      id: chat.id,
+      title: chat.title,
+      timestamp: chat.timestamp
+    })))
+  }
+
+  const handleChatClone = (chatId: string) => {
+    // Chat is already cloned by the component, just refresh the list
+    const history = getChatHistory()
+    setChats(history.map(chat => ({
+      id: chat.id,
+      title: chat.title,
+      timestamp: chat.timestamp
+    })))
+  }
+
+  const handleChatsUpdate = () => {
     const history = getChatHistory()
     setChats(history.map(chat => ({
       id: chat.id,
@@ -276,6 +331,11 @@ export default function ChatPage() {
           onChatCreate={handleChatCreate}
           onProjectRename={handleProjectRename}
           onChatRename={handleChatRename}
+          onProjectDelete={handleProjectDelete}
+          onProjectClone={handleProjectClone}
+          onChatDelete={handleChatDelete}
+          onChatClone={handleChatClone}
+          onChatsUpdate={handleChatsUpdate}
           onSettingsClick={handleSettingsOpen}
         />
       </SidebarProvider>
@@ -292,9 +352,13 @@ export default function ChatPage() {
           context={context}
           onContextChange={setContext}
           onSaveContext={handleSaveContext}
+          memory={memory}
+          onMemoryChange={setMemory}
+          onSaveMemory={handleSaveMemory}
           activeModels={activeModels}
           onModelToggle={handleModelToggle}
           onSidebarToggle={() => setLeftCollapsed(!leftCollapsed)}
+          chatId={chatId}
         />
         <CenterWorkspace 
           leftCollapsed={leftCollapsed}

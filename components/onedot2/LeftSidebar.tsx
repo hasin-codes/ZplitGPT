@@ -3,8 +3,15 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { FolderOpen, MessageSquare, Plus, HelpCircle, Settings, X } from 'lucide-react'
+import { FolderOpen, MessageSquare, Plus, HelpCircle, Settings, X, MoreVertical, Pin, Edit2, Copy, Archive, Trash2, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
 import ProfileDropdown from '@/components/kokonutui/profile-dropdown'
 import {
   Sidebar,
@@ -20,6 +27,7 @@ import {
 } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { deleteChat, cloneChat, getChatHistory } from '@/lib/chat-storage'
 
 interface LeftSidebarProps {
   collapsed: boolean
@@ -35,6 +43,11 @@ interface LeftSidebarProps {
   onChatCreate?: () => void
   onProjectRename?: (projectId: string, name: string) => void
   onChatRename?: (chatId: string, name: string) => void
+  onProjectDelete?: (projectId: string) => void
+  onProjectClone?: (projectId: string) => void
+  onChatDelete?: (chatId: string) => void
+  onChatClone?: (chatId: string) => void
+  onChatsUpdate?: () => void
   onSettingsClick?: () => void
   disableHoverBehavior?: boolean
   disableNewChat?: boolean
@@ -66,6 +79,11 @@ export function LeftSidebar({
   onChatCreate,
   onProjectRename,
   onChatRename,
+  onProjectDelete,
+  onProjectClone,
+  onChatDelete,
+  onChatClone,
+  onChatsUpdate,
   onSettingsClick,
   disableHoverBehavior = false,
   disableNewChat = false
@@ -74,6 +92,7 @@ export function LeftSidebar({
   const isMobile = useIsMobile()
   const [isHovered, setIsHovered] = useState(false)
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
   
   // On mobile: always expanded when open (not collapsed)
   // On desktop: expanded on hover or when dropdown is open (unless hover behavior is disabled)
@@ -128,8 +147,8 @@ export function LeftSidebar({
 
   const handleMouseLeave = () => {
     if (!isMobile && !disableHoverBehavior) {
-      // Don't collapse if profile dropdown is open
-      if (!isProfileDropdownOpen) {
+      // Don't collapse if profile dropdown or any menu dropdown is open
+      if (!isProfileDropdownOpen && !openDropdownId) {
         setIsHovered(false)
         onHoverChange?.(false)
       }
@@ -256,7 +275,11 @@ export function LeftSidebar({
               {projects.map((project) => (
                 <SidebarMenuItem key={project.id}>
                   <SidebarMenuButton
-                    onClick={() => {
+                    onClick={(e) => {
+                      // Don't select if clicking on the dropdown menu area
+                      if ((e.target as HTMLElement).closest('[role="menu"]') || (e.target as HTMLElement).closest('button[class*="opacity-0"]')) {
+                        return
+                      }
                       setSelectedProject(project.id)
                       // Close sidebar on mobile when selecting a project
                       if (isMobile) {
@@ -286,9 +309,9 @@ export function LeftSidebar({
                       </>
                     )}
                     <div className="flex flex-col w-full relative z-10">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <span 
-                          className="text-[#f5f5f5] text-sm font-medium truncate overflow-hidden inline-block w-full"
+                          className="text-[#f5f5f5] text-sm font-medium truncate overflow-hidden inline-block flex-1 text-left"
                           style={!isMobile ? {
                             clipPath: isExpanded ? 'inset(0)' : 'inset(0 100% 0 0)',
                             transition: 'clip-path 300ms ease-in-out'
@@ -296,6 +319,91 @@ export function LeftSidebar({
                         >
                           {project.name}
                         </span>
+                        {isExpanded && (
+                          <DropdownMenu onOpenChange={(open) => {
+                            if (open) {
+                              setOpenDropdownId(`project-${project.id}`)
+                              if (!isMobile && !disableHoverBehavior) {
+                                setIsHovered(true)
+                                onHoverChange?.(true)
+                              }
+                            } else {
+                              setOpenDropdownId(null)
+                            }
+                          }}>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-[#666666] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  e.preventDefault()
+                                }}
+                                onMouseDown={(e) => {
+                                  e.stopPropagation()
+                                }}
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent 
+                              className="bg-[#0a0a0a] border-[#1a1a1a] text-[#f5f5f5] rounded-lg z-[10000] shadow-lg min-w-[160px]"
+                              align="end"
+                              onClick={(e) => e.stopPropagation()}
+                              onMouseDown={(e) => e.stopPropagation()}
+                            >
+                              <DropdownMenuItem className="hover:bg-[#1a1a1a] rounded-md cursor-pointer">
+                                <Pin className="w-4 h-4 mr-2" />
+                                Pin
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="hover:bg-[#1a1a1a] rounded-md cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const newName = prompt('Enter new project name:', project.name)
+                                  if (newName && newName.trim()) {
+                                    onProjectRename?.(project.id, newName.trim())
+                                  }
+                                }}
+                              >
+                                <Edit2 className="w-4 h-4 mr-2" />
+                                Rename
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="hover:bg-[#1a1a1a] rounded-md cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  onProjectClone?.(project.id)
+                                }}
+                              >
+                                <Copy className="w-4 h-4 mr-2" />
+                                Clone
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="hover:bg-[#1a1a1a] rounded-md cursor-pointer">
+                                <Archive className="w-4 h-4 mr-2" />
+                                Archive
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-[#1a1a1a]" />
+                              <DropdownMenuItem 
+                                className="hover:bg-[#1a1a1a] rounded-md cursor-pointer text-[#ff4f2b] hover:text-[#ff6b4a]"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  if (confirm(`Are you sure you want to delete "${project.name}"?`)) {
+                                    onProjectDelete?.(project.id)
+                                  }
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="hover:bg-[#1a1a1a] rounded-md cursor-pointer">
+                                <Download className="w-4 h-4 mr-2" />
+                                Download
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                     </div>
                   </SidebarMenuButton>
@@ -354,7 +462,11 @@ export function LeftSidebar({
               {chatHistory.map((chat) => (
                 <SidebarMenuItem key={chat.id}>
                   <SidebarMenuButton
-                    onClick={() => {
+                    onClick={(e) => {
+                      // Don't navigate if clicking on the dropdown menu area
+                      if ((e.target as HTMLElement).closest('[role="menu"]') || (e.target as HTMLElement).closest('button[class*="opacity-0"]')) {
+                        return
+                      }
                       // Use router to navigate to chat page
                       if (propsOnChatSelect) {
                         propsOnChatSelect(chat.id)
@@ -389,9 +501,9 @@ export function LeftSidebar({
                       </>
                     )}
                     <div className="flex flex-col w-full relative z-10">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <span 
-                          className="text-[#f5f5f5] text-sm font-medium truncate overflow-hidden inline-block w-full"
+                          className="text-[#f5f5f5] text-sm font-medium truncate overflow-hidden inline-block flex-1 text-left"
                           style={!isMobile ? {
                             clipPath: isExpanded ? 'inset(0)' : 'inset(0 100% 0 0)',
                             transition: 'clip-path 300ms ease-in-out'
@@ -399,6 +511,111 @@ export function LeftSidebar({
                         >
                           {chat.title}
                         </span>
+                        {isExpanded && (
+                          <DropdownMenu onOpenChange={(open) => {
+                            if (open) {
+                              setOpenDropdownId(`chat-${chat.id}`)
+                              if (!isMobile && !disableHoverBehavior) {
+                                setIsHovered(true)
+                                onHoverChange?.(true)
+                              }
+                            } else {
+                              setOpenDropdownId(null)
+                            }
+                          }}>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-[#666666] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  e.preventDefault()
+                                }}
+                                onMouseDown={(e) => {
+                                  e.stopPropagation()
+                                }}
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent 
+                              className="bg-[#0a0a0a] border-[#1a1a1a] text-[#f5f5f5] rounded-lg z-[10000] shadow-lg min-w-[160px]"
+                              align="end"
+                              onClick={(e) => e.stopPropagation()}
+                              onMouseDown={(e) => e.stopPropagation()}
+                            >
+                              <DropdownMenuItem className="hover:bg-[#1a1a1a] rounded-md cursor-pointer">
+                                <Pin className="w-4 h-4 mr-2" />
+                                Pin
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="hover:bg-[#1a1a1a] rounded-md cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const newName = prompt('Enter new chat name:', chat.title)
+                                  if (newName && newName.trim()) {
+                                    onChatRename?.(chat.id, newName.trim())
+                                  }
+                                }}
+                              >
+                                <Edit2 className="w-4 h-4 mr-2" />
+                                Rename
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="hover:bg-[#1a1a1a] rounded-md cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const clonedChat = cloneChat(chat.id)
+                                  if (clonedChat) {
+                                    onChatClone?.(chat.id)
+                                    onChatsUpdate?.()
+                                    // Navigate to the cloned chat
+                                    if (propsOnChatSelect) {
+                                      propsOnChatSelect(clonedChat.id)
+                                    } else {
+                                      router.push(`/chat/${clonedChat.id}`)
+                                    }
+                                  }
+                                }}
+                              >
+                                <Copy className="w-4 h-4 mr-2" />
+                                Clone
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="hover:bg-[#1a1a1a] rounded-md cursor-pointer">
+                                <Archive className="w-4 h-4 mr-2" />
+                                Archive
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator className="bg-[#1a1a1a]" />
+                              <DropdownMenuItem 
+                                className="hover:bg-[#1a1a1a] rounded-md cursor-pointer text-[#ff4f2b] hover:text-[#ff6b4a]"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  if (confirm(`Are you sure you want to delete "${chat.title}"?`)) {
+                                    deleteChat(chat.id)
+                                    onChatDelete?.(chat.id)
+                                    onChatsUpdate?.()
+                                    // If deleted chat was selected, navigate to home
+                                    if (selectedChat === chat.id) {
+                                      if (propsOnChatSelect) {
+                                        propsOnChatSelect(null)
+                                      } else {
+                                        router.push('/')
+                                      }
+                                    }
+                                  }
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="hover:bg-[#1a1a1a] rounded-md cursor-pointer">
+                                <Download className="w-4 h-4 mr-2" />
+                                Download
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                     </div>
                   </SidebarMenuButton>

@@ -73,6 +73,7 @@ export default function Home() {
   }, [])
   const [activeModels, setActiveModels] = useState(['gpt-3.5-turbo', 'claude-3-sonnet', 'gemini-pro', 'mistral-7b'])
   const [context, setContext] = useState('You are a helpful AI assistant that provides clear, accurate, and concise responses.')
+  const [memory, setMemory] = useState('')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   
   // Projects and Chats state
@@ -111,6 +112,11 @@ export default function Home() {
   const handleSaveContext = () => {
     localStorage.setItem('Zplitgpt-context', context)
     console.log('Context saved:', context)
+  }
+
+  const handleSaveMemory = () => {
+    localStorage.setItem('Zplitgpt-memory-default', memory)
+    console.log('Memory saved:', memory)
   }
 
   // Project handlers
@@ -194,6 +200,55 @@ export default function Home() {
     })))
   }
 
+  const handleProjectDelete = (projectId: string) => {
+    setProjects(prev => prev.filter(p => p.id !== projectId))
+    if (selectedProject === projectId) {
+      setSelectedProject('default')
+    }
+  }
+
+  const handleProjectClone = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId)
+    if (project) {
+      const newProject: Project = {
+        id: `project-${Date.now()}`,
+        name: `${project.name} (Copy)`,
+        lastModified: 'Just now'
+      }
+      setProjects(prev => [newProject, ...prev])
+      setSelectedProject(newProject.id)
+    }
+  }
+
+  const handleChatDelete = (chatId: string) => {
+    // Chat is already deleted by the component, just refresh the list
+    const history = getChatHistory()
+    setChats(history.map(chat => ({
+      id: chat.id,
+      title: chat.title,
+      timestamp: chat.timestamp
+    })))
+  }
+
+  const handleChatClone = (chatId: string) => {
+    // Chat is already cloned by the component, just refresh the list
+    const history = getChatHistory()
+    setChats(history.map(chat => ({
+      id: chat.id,
+      title: chat.title,
+      timestamp: chat.timestamp
+    })))
+  }
+
+  const handleChatsUpdate = () => {
+    const history = getChatHistory()
+    setChats(history.map(chat => ({
+      id: chat.id,
+      title: chat.title,
+      timestamp: chat.timestamp
+    })))
+  }
+
   const handleSettingsOpen = () => {
     setIsSettingsOpen(true)
   }
@@ -220,6 +275,11 @@ export default function Home() {
           onChatCreate={handleChatCreate}
           onProjectRename={handleProjectRename}
           onChatRename={handleChatRename}
+          onProjectDelete={handleProjectDelete}
+          onProjectClone={handleProjectClone}
+          onChatDelete={handleChatDelete}
+          onChatClone={handleChatClone}
+          onChatsUpdate={handleChatsUpdate}
           onSettingsClick={handleSettingsOpen}
           disableHoverBehavior={isDefaultState}
           disableNewChat={isDefaultState}
@@ -238,6 +298,9 @@ export default function Home() {
           context={context}
           onContextChange={setContext}
           onSaveContext={handleSaveContext}
+          memory={memory}
+          onMemoryChange={setMemory}
+          onSaveMemory={handleSaveMemory}
           activeModels={activeModels}
           onModelToggle={handleModelToggle}
           onSidebarToggle={() => setLeftCollapsed(!leftCollapsed)}

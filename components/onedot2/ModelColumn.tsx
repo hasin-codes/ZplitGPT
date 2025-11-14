@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Timer, Coins, Copy, Diff, Download, ChevronDown } from 'lucide-react'
+import { Timer, Coins, Copy, Diff, Download, ChevronDown, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AdvanceControls } from './AdvanceControls'
 import { cn } from '@/lib/utils'
 
 export interface ModelResponse {
@@ -46,6 +48,7 @@ export function ModelColumn({
   const contentRef = useRef<HTMLDivElement>(null)
   const selectionStartRef = useRef<{ column: string; timestamp: number } | null>(null)
   const [showScrollToBottom, setShowScrollToBottom] = useState(false)
+  const [advanceControlsOpen, setAdvanceControlsOpen] = useState(false)
 
   // Prevent selection from crossing column boundaries
   useEffect(() => {
@@ -230,17 +233,17 @@ export function ModelColumn({
             />
             <h3 className="text-[#f5f5f5] font-medium text-sm">{name}</h3>
           </div>
-          <div className="flex items-center gap-2 text-xs text-[#b3b3b3]">
-            <div className="flex items-center gap-1">
-              <Timer className="w-3 h-3" />
-              <span>{displayLatency.toFixed(1)}s</span>
-            </div>
-            <span className="text-[#666666]">·</span>
-            <div className="flex items-center gap-1">
-              <Coins className="w-3 h-3" />
-              <span>{displayTokens} tokens</span>
-            </div>
-          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setAdvanceControlsOpen(true)}
+            className="h-7 w-7 p-0 text-[#666666] hover:text-[#ff4f2b] hover:bg-[#1a1a1a] border border-transparent hover:border-[#333333] transition-all duration-200 relative"
+            title="Advanced Controls"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            {/* Subtle hint dot */}
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#ff4f2b] opacity-40" />
+          </Button>
         </div>
       </div>
 
@@ -307,24 +310,37 @@ export function ModelColumn({
             </div>
 
             {/* Inline Actions */}
-            <div className="flex items-center gap-2 pt-4 border-t border-[#1a1a1a]">
-              <Button variant="ghost" size="sm" className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm">
-                <Copy className="w-3 h-3 mr-1" />
-                Copy
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm"
-                onClick={onOpenDiff}
-              >
-                <Diff className="w-3 h-3 mr-1" />
-                Diff
-              </Button>
-              <Button variant="ghost" size="sm" className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm">
-                <Download className="w-3 h-3 mr-1" />
-                Export
-              </Button>
+            <div className="flex items-center justify-between pt-4 border-t border-[#1a1a1a]">
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm">
+                  <Copy className="w-3 h-3 mr-1" />
+                  Copy
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm"
+                  onClick={onOpenDiff}
+                >
+                  <Diff className="w-3 h-3 mr-1" />
+                  Diff
+                </Button>
+                <Button variant="ghost" size="sm" className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm">
+                  <Download className="w-3 h-3 mr-1" />
+                  Export
+                </Button>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-[#b3b3b3]">
+                <div className="flex items-center gap-1">
+                  <Timer className="w-3 h-3" />
+                  <span>{displayLatency.toFixed(1)}s</span>
+                </div>
+                <span className="text-[#666666]">·</span>
+                <div className="flex items-center gap-1">
+                  <Coins className="w-3 h-3" />
+                  <span>{displayTokens} tokens</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -343,6 +359,21 @@ export function ModelColumn({
           <ChevronDown className="w-4 h-4 text-[#b3b3b3]" />
         </button>
       )}
+
+      {/* Advanced Controls Modal */}
+      <Dialog open={advanceControlsOpen} onOpenChange={setAdvanceControlsOpen}>
+        <DialogContent className="w-[95vw] max-w-[95vw] h-auto max-h-[95vh] bg-[#0a0a0a] border-[#1a1a1a] text-[#f5f5f5] overflow-hidden flex flex-col p-0 md:max-w-2xl md:max-h-[85vh]">
+          <DialogHeader className="px-4 pt-4 pb-2 flex-shrink-0">
+            <DialogTitle className="text-[#f5f5f5] text-lg font-semibold flex items-center gap-2">
+              <SlidersHorizontal className="w-5 h-5 text-[#ff4f2b]" />
+              Advanced Controls - {name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="overflow-y-auto px-4 pb-4">
+            <AdvanceControls modelId={id} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
