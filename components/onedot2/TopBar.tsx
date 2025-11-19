@@ -79,7 +79,7 @@ export function TopBar({
         )}
 
         <div className={`${isHome ? 'w-full flex justify-center' : 'w-[74%]'} border-r border-[#1a1a1a]`}>
-          <div className={isHome ? 'w-full px-4' : 'w-full'}>
+          <div className="w-full">
             <ModelBrandSelector
               activeModels={activeModels}
               onModelToggle={onModelToggle}

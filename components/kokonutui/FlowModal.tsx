@@ -71,7 +71,7 @@ function SortableItem({
       <div
         ref={setNodeRef}
         style={style}
-        className="opacity-30 bg-zinc-800/50 border border-zinc-700/50 rounded-xl h-[80px]"
+        className="opacity-30 bg-neutral-800/50 border border-neutral-700/50 rounded-xl h-[80px]"
       />
     )
   }
@@ -90,14 +90,14 @@ function SortableItem({
       className={cn(
         "group relative rounded-xl border p-4 transition-colors duration-200 select-none cursor-grab active:cursor-grabbing",
         type === 'system'
-          ? "bg-zinc-900/50 border-zinc-800 hover:border-orange-500/30 hover:bg-orange-500/5"
-          : "bg-zinc-900/50 border-zinc-800 hover:border-blue-500/30 hover:bg-blue-500/5"
+          ? "bg-neutral-900/50 border-neutral-800 hover:border-orange-500/30 hover:bg-orange-500/5"
+          : "bg-neutral-900/50 border-neutral-800 hover:border-blue-500/30 hover:bg-blue-500/5"
       )}
     >
       <div className="flex gap-3 items-start">
         <div className={cn(
           "mt-1 p-1 rounded transition-colors",
-          type === 'system' ? "text-zinc-600 group-hover:text-orange-500" : "text-zinc-600 group-hover:text-blue-500"
+          type === 'system' ? "text-neutral-600 group-hover:text-orange-500" : "text-neutral-600 group-hover:text-blue-500"
         )}
         >
           <GripVertical className="w-4 h-4" />
@@ -105,20 +105,20 @@ function SortableItem({
 
         <div className="flex-1 min-w-0">
           <p className={cn(
-            "text-sm leading-relaxed text-zinc-300",
+            "text-sm leading-relaxed text-neutral-300",
             type === 'system' ? "group-hover:text-orange-100" : "group-hover:text-blue-100"
           )}>
             {item.content}
           </p>
           {type === 'memory' && (
-            <p className="text-[10px] text-zinc-600 mt-2 font-mono">
+            <p className="text-[10px] text-neutral-600 mt-2 font-mono">
               {new Date(item.timestamp).toLocaleDateString()} • {new Date(item.timestamp).toLocaleTimeString()}
             </p>
           )}
         </div>
       </div>
 
-      <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-zinc-900/90 rounded-lg p-1 border border-zinc-800"
+      <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-neutral-900/90 rounded-lg p-1 border border-neutral-800"
         onPointerDown={(e) => e.stopPropagation()} // Prevent drag start on buttons
       >
         <Button
@@ -131,8 +131,8 @@ function SortableItem({
           className={cn(
             "h-6 w-6 rounded-md transition-colors cursor-pointer",
             type === 'system'
-              ? "text-zinc-500 hover:text-orange-400 hover:bg-orange-500/10"
-              : "text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10"
+              ? "text-neutral-500 hover:text-orange-400 hover:bg-orange-500/10"
+              : "text-neutral-500 hover:text-blue-400 hover:bg-blue-500/10"
           )}
         >
           <ArrowRight className={cn(
@@ -147,7 +147,7 @@ function SortableItem({
           }}
           variant="ghost"
           size="icon"
-          className="h-6 w-6 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
+          className="h-6 w-6 rounded-md text-neutral-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </Button>
@@ -364,7 +364,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="bg-zinc-950 border-zinc-800 text-zinc-100 overflow-hidden flex flex-col p-0 shadow-2xl sm:rounded-3xl"
+        className="bg-neutral-950 border-neutral-800 text-neutral-100 overflow-hidden flex flex-col p-0 shadow-2xl sm:rounded-3xl"
         style={{
           width: '90vw',
           height: '85vh',
@@ -380,21 +380,21 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
           onDragEnd={handleDragEnd}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-8 py-6 border-b border-zinc-800 bg-zinc-950">
+          <div className="flex items-center justify-between px-8 py-6 border-b border-neutral-800 bg-neutral-950">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-xl bg-neutral-900 border border-neutral-800 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-orange-500" />
               </div>
               <div>
                 <DialogTitle className="text-xl font-semibold tracking-tight text-white">Flow Control</DialogTitle>
-                <p className="text-sm text-zinc-400 font-medium">Manage system contexts and active memory</p>
+                <p className="text-sm text-neutral-400 font-medium">Manage system contexts and active memory</p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors"
+              className="rounded-full hover:bg-neutral-900 text-neutral-400 hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -402,7 +402,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
 
           <div className="flex-1 flex overflow-hidden">
             {/* Left Column: System Context */}
-            <div className="w-1/2 flex flex-col border-r border-zinc-800 bg-zinc-950">
+            <div className="w-1/2 flex flex-col border-r border-neutral-800 bg-neutral-950">
               <div className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-orange-500 uppercase tracking-wider flex items-center gap-2">
@@ -414,7 +414,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
                       onClick={handleForgetAllContexts}
                       variant="ghost"
                       size="sm"
-                      className="text-xs text-zinc-500 hover:text-red-400 hover:bg-red-500/10 h-7 px-3 rounded-lg transition-colors"
+                      className="text-xs text-neutral-500 hover:text-red-400 hover:bg-red-500/10 h-7 px-3 rounded-lg transition-colors"
                     >
                       Clear All
                     </Button>
@@ -422,13 +422,13 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
                 </div>
 
                 <div className="relative group">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-orange-500 transition-colors" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 group-focus-within:text-orange-500 transition-colors" />
                   <input
                     type="text"
                     placeholder="Search contexts..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all"
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-neutral-300 placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all"
                   />
                 </div>
 
@@ -438,16 +438,16 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
                       initial={{ opacity: 0, y: -10, height: 0 }}
                       animate={{ opacity: 1, y: 0, height: 'auto' }}
                       exit={{ opacity: 0, y: -10, height: 0 }}
-                      className="bg-zinc-900 rounded-2xl p-4 border border-orange-500/20 shadow-lg shadow-orange-500/5 overflow-hidden"
+                      className="bg-neutral-900 rounded-2xl p-4 border border-orange-500/20 shadow-lg shadow-orange-500/5 overflow-hidden"
                     >
                       <Textarea
                         value={newContextInput}
                         onChange={(e) => setNewContextInput(e.target.value)}
                         placeholder="Enter a new system context..."
-                        className="w-full bg-transparent border-none text-zinc-100 placeholder:text-zinc-600 resize-none focus:ring-0 min-h-[80px] text-sm p-0 leading-relaxed"
+                        className="w-full bg-transparent border-none text-neutral-100 placeholder:text-neutral-600 resize-none focus:ring-0 min-h-[80px] text-sm p-0 leading-relaxed"
                         autoFocus
                       />
-                      <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-zinc-800">
+                      <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-neutral-800">
                         <Button
                           onClick={() => {
                             setShowNewContextInput(false)
@@ -455,7 +455,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
                           }}
                           variant="ghost"
                           size="sm"
-                          className="text-zinc-400 hover:text-white hover:bg-white/5"
+                          className="text-neutral-400 hover:text-white hover:bg-white/5"
                         >
                           Cancel
                         </Button>
@@ -474,9 +474,9 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       onClick={() => setShowNewContextInput(true)}
-                      className="w-full group flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-zinc-800 text-zinc-500 hover:text-orange-500 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all duration-300"
+                      className="w-full group flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-neutral-800 text-neutral-500 hover:text-orange-500 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all duration-300"
                     >
-                      <div className="w-6 h-6 rounded-full bg-zinc-900 group-hover:bg-orange-500/20 flex items-center justify-center transition-colors">
+                      <div className="w-6 h-6 rounded-full bg-neutral-900 group-hover:bg-orange-500/20 flex items-center justify-center transition-colors">
                         <Plus className="w-3.5 h-3.5" />
                       </div>
                       <span className="text-sm font-medium">Create New Context</span>
@@ -505,10 +505,10 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
                     </AnimatePresence>
                     {filteredContexts.length === 0 && !showNewContextInput && (
                       <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center mb-4">
-                          <Search className="w-5 h-5 text-zinc-600" />
+                        <div className="w-12 h-12 rounded-full bg-neutral-900 flex items-center justify-center mb-4">
+                          <Search className="w-5 h-5 text-neutral-600" />
                         </div>
-                        <p className="text-zinc-500 text-sm">No contexts found</p>
+                        <p className="text-neutral-500 text-sm">No contexts found</p>
                       </div>
                     )}
                   </div>
@@ -517,8 +517,8 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
             </div>
 
             {/* Right Column: Chat Memory */}
-            <div className="w-1/2 flex flex-col bg-zinc-950">
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+            <div className="w-1/2 flex flex-col bg-neutral-950">
+              <div className="p-6 border-b border-neutral-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <h3 className="text-sm font-medium text-blue-500 uppercase tracking-wider flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
@@ -533,7 +533,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
                     onClick={handleForgetAllMemories}
                     variant="ghost"
                     size="sm"
-                    className="text-xs text-zinc-500 hover:text-red-400 hover:bg-red-500/10 h-7 px-3 rounded-lg transition-colors"
+                    className="text-xs text-neutral-500 hover:text-red-400 hover:bg-red-500/10 h-7 px-3 rounded-lg transition-colors"
                   >
                     Clear Memory
                   </Button>
@@ -561,13 +561,13 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
 
                     {chatMemories.length === 0 && (
                       <div className="flex flex-col items-center justify-center py-32 text-center opacity-50">
-                        <div className="w-24 h-24 rounded-full bg-zinc-900 flex items-center justify-center mb-6 border border-dashed border-zinc-800">
-                          <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800">
-                            <ArrowRight className="w-5 h-5 text-zinc-600" />
+                        <div className="w-24 h-24 rounded-full bg-neutral-900 flex items-center justify-center mb-6 border border-dashed border-neutral-800">
+                          <div className="w-12 h-12 rounded-full bg-neutral-900 flex items-center justify-center border border-neutral-800">
+                            <ArrowRight className="w-5 h-5 text-neutral-600" />
                           </div>
                         </div>
-                        <h4 className="text-zinc-300 font-medium mb-2">Memory Empty</h4>
-                        <p className="text-zinc-500 text-sm max-w-[200px]">
+                        <h4 className="text-neutral-300 font-medium mb-2">Memory Empty</h4>
+                        <p className="text-neutral-500 text-sm max-w-[200px]">
                           Drag contexts here or use the arrow button to add them to active memory.
                         </p>
                       </div>
@@ -581,7 +581,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
           <DragOverlay dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }) }}>
             {activeDragItem ? (
               <div className={cn(
-                "rounded-xl border p-4 bg-zinc-900 shadow-2xl cursor-grabbing w-[400px] select-none",
+                "rounded-xl border p-4 bg-neutral-900 shadow-2xl cursor-grabbing w-[400px] select-none",
                 activeDragType === 'system' ? "border-orange-500/50" : "border-blue-500/50"
               )}>
                 <div className="flex gap-3 items-start">
@@ -593,7 +593,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
                     <GripVertical className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm leading-relaxed text-zinc-200">
+                    <p className="text-sm leading-relaxed text-neutral-200">
                       {activeDragItem.content}
                     </p>
                   </div>

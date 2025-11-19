@@ -79,22 +79,21 @@ export default function AI_Prompt({ onMessageSent, className }: AI_PromptProps) 
                         borderRadius: 'calc(1rem - 1.5px)',
                     }}
                 >
-                    <div className="flex items-center gap-2 mb-2.5 mx-2">
+                    <div className="flex items-center gap-3 mb-3 mx-2">
                         <div className="flex-1 flex items-center gap-2">
                             <Image
                                 src="/ZplitGPT.svg"
                                 alt="ZplitGPT Logo"
-                                width={14}
-                                height={14}
-                                className="h-3.5 w-3.5 opacity-80"
+                                width={16}
+                                height={16}
+                                className="opacity-90"
                             />
-                            <h3 className="text-gray-400 text-sm font-medium tracking-tight">
-                                is under development
-                            </h3>
+                            <div className="flex items-center gap-2">
+                                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-medium text-neutral-400 uppercase tracking-wider">
+                                    Preview
+                                </span>
+                            </div>
                         </div>
-                        <p className="text-gray-400 text-sm font-medium tracking-tight">
-                            Coming Soon
-                        </p>
                     </div>
                     <div className="relative">
                         {/* <div className="absolute -top-12 left-0 w-full h-full border border-black/10 dark:border-white/10 rounded-2xl p-3  border-b-0">
@@ -117,7 +116,7 @@ export default function AI_Prompt({ onMessageSent, className }: AI_PromptProps) 
                                     value={value}
                                     placeholder={"What can I do for you?"}
                                     className={cn(
-                                        "w-full rounded-xl rounded-b-none px-4 py-3 backdrop-blur-md border-none text-white placeholder:text-gray-500 resize-none focus-visible:ring-0 focus-visible:ring-offset-0",
+                                        "w-full rounded-xl rounded-b-none px-4 py-3 backdrop-blur-md border-none text-white placeholder:text-neutral-500 resize-none focus-visible:ring-0 focus-visible:ring-offset-0",
                                         "min-h-[72px] text-sm"
                                     )}
                                     style={{ backgroundColor: '#222222' }}
@@ -137,27 +136,28 @@ export default function AI_Prompt({ onMessageSent, className }: AI_PromptProps) 
                                         {/* Attachment button */}
                                         <label
                                             className={cn(
-                                                "rounded-lg p-2 bg-white/5 cursor-pointer flex-shrink-0",
-                                                "hover:bg-white/10 focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:ring-blue-500",
-                                                "text-white/40 hover:text-white"
+                                                "rounded-full p-2 bg-white/5 cursor-pointer flex-shrink-0 transition-all duration-200",
+                                                "hover:bg-white/10 hover:scale-105 active:scale-95",
+                                                "text-neutral-400 hover:text-white"
                                             )}
                                             aria-label="Attach file"
                                         >
                                             <input type="file" className="hidden" />
-                                            <Paperclip className="w-4 h-4 transition-colors" />
+                                            <Paperclip className="w-4 h-4" />
                                         </label>
                                         {/* Flow button */}
                                         <button
                                             type="button"
                                             onClick={handleFlowClick}
                                             className={cn(
-                                                "flex items-center gap-1.5 cursor-pointer transition-all duration-300 ease-in-out",
-                                                "border border-cyan-500/30 py-1.5 rounded-full px-3 bg-cyan-500/10 hover:bg-cyan-500/20"
+                                                "flex items-center gap-1.5 cursor-pointer transition-all duration-200 ease-in-out",
+                                                "border border-cyan-500/20 py-1.5 rounded-full px-3 bg-cyan-500/5",
+                                                "hover:bg-cyan-500/10 hover:border-cyan-500/40 hover:shadow-[0_0_10px_-3px_rgba(6,182,212,0.3)]"
                                             )}
                                             aria-label="Flow"
                                         >
-                                            <GitBranch className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-                                            <span className="text-cyan-400 font-medium text-sm whitespace-nowrap">
+                                            <GitBranch className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
+                                            <span className="text-cyan-400 font-medium text-xs whitespace-nowrap">
                                                 Flow
                                             </span>
                                         </button>

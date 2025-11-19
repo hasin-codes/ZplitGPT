@@ -43,7 +43,7 @@ export function ModelBrandSelector({ activeModels, onModelToggle }: ModelBrandSe
 
       const container = containerRef.current
       const containerWidth = container.offsetWidth
-      const padding = 32 // px-4 = 16px on each side
+      const padding = 0 // No padding on container
       const gap = 6 // gap-1.5 = 6px
       const moreButtonWidth = 36 // Width of the "More" button
 
@@ -165,7 +165,7 @@ export function ModelBrandSelector({ activeModels, onModelToggle }: ModelBrandSe
       ref={containerRef}
       className="relative w-full h-[60px] bg-[#0a0a0a] border-b border-[#1a1a1a] flex items-center"
     >
-      <div className="px-4 w-full flex items-center justify-between">
+      <div className="w-full flex items-center justify-between">
         {/* Row 1: Visible brand buttons */}
         <div className={`flex items-center gap-1.5 overflow-hidden flex-1 ${dropdownBrands.length === 0 ? 'justify-center' : ''}`}>
           {row1Brands.map((brand) => renderBrandButton(brand))}
