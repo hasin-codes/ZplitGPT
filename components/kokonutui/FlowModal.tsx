@@ -123,9 +123,9 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
       setChatMemories(updatedMemories)
       saveMemoriesToStorage(updatedMemories)
       setSelectedContextIds(prev => new Set(prev).add(context.id))
-      
+
       setTimeout(() => {
-        setChatMemories(prev => prev.map(m => 
+        setChatMemories(prev => prev.map(m =>
           m.id === newMemory.id ? { ...m, isNew: false } : m
         ))
       }, 3000)
@@ -137,7 +137,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
     const updatedMemories = chatMemories.filter(m => m.id !== memoryId)
     setChatMemories(updatedMemories)
     saveMemoriesToStorage(updatedMemories)
-    
+
     const updated = systemContexts.filter(item => item.id !== id)
     setSystemContexts(updated)
     saveContextsToStorage(updated)
@@ -152,7 +152,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
     const updated = chatMemories.filter(item => item.id !== id)
     setChatMemories(updated)
     saveMemoriesToStorage(updated)
-    
+
     const contextId = id.replace('-memory', '')
     setSelectedContextIds(prev => {
       const newSet = new Set(prev)
@@ -177,9 +177,9 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className="bg-[#0a0a0a] border-[#1a1a1a] text-[#f5f5f5] overflow-hidden flex flex-col p-0"
-        style={{ 
+      <DialogContent
+        className="bg-background/95 backdrop-blur-xl border-white/10 text-foreground overflow-hidden flex flex-col p-0 shadow-2xl shadow-black/50"
+        style={{
           width: '80vw',
           height: '40vw',
           maxWidth: '1600px',
@@ -264,7 +264,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
                     {isSelected && (
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#ff8c5a]" />
                     )}
-                    
+
                     <div className="p-4 pr-20">
                       <p className={cn(
                         "text-base leading-relaxed",
@@ -337,8 +337,8 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
                   key={item.id}
                   className={cn(
                     "rounded-xl border transition-all relative overflow-hidden group",
-                    item.isNew 
-                      ? "border-cyan-500/50 bg-cyan-500/5 shadow-[0_0_16px_rgba(6,182,212,0.12)]" 
+                    item.isNew
+                      ? "border-cyan-500/50 bg-cyan-500/5 shadow-[0_0_16px_rgba(6,182,212,0.12)]"
                       : "bg-[#1a1a1a] border-[#2a2a2a] hover:border-[#3a3a3a] hover:bg-[#151515]"
                   )}
                 >
@@ -352,7 +352,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
                       </div>
                     </>
                   )}
-                  
+
                   <div className={cn(
                     "p-4",
                     item.isNew ? "pr-20" : "pr-16"

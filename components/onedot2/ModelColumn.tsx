@@ -27,6 +27,8 @@ interface ModelColumnProps {
   onOpenDiff: () => void
   width: string
   className?: string
+  contentPaddingBottom?: string | number
+  style?: React.CSSProperties
 }
 
 export function ModelColumn({
@@ -39,7 +41,9 @@ export function ModelColumn({
   onAddVersion,
   onOpenDiff,
   width,
-  className
+  className,
+  contentPaddingBottom,
+  style
 }: ModelColumnProps) {
   const activeResponse = responses.find(r => r.version === activeVersion) || responses[0]
   const displayLatency = activeResponse?.latency || 0
@@ -75,13 +79,13 @@ export function ModelColumn({
       const endContainer = range.endContainer
 
       // Check if selection starts in this column
-      const startsInThisColumn = column.contains(startContainer.nodeType === Node.TEXT_NODE 
-        ? startContainer.parentElement 
+      const startsInThisColumn = column.contains(startContainer.nodeType === Node.TEXT_NODE
+        ? startContainer.parentElement
         : startContainer as Node)
 
       // Check if selection ends in this column
-      const endsInThisColumn = column.contains(endContainer.nodeType === Node.TEXT_NODE 
-        ? endContainer.parentElement 
+      const endsInThisColumn = column.contains(endContainer.nodeType === Node.TEXT_NODE
+        ? endContainer.parentElement
         : endContainer as Node)
 
       // If selection crosses column boundaries, prevent it
@@ -156,7 +160,7 @@ export function ModelColumn({
 
     // Listen to scroll events
     content.addEventListener('scroll', checkScrollPosition)
-    
+
     // Also check when content changes
     const resizeObserver = new ResizeObserver(checkScrollPosition)
     resizeObserver.observe(content)
@@ -201,27 +205,15 @@ export function ModelColumn({
     <div
       ref={columnRef}
       data-model-column={id}
-      className={cn("flex-shrink-0 flex flex-col relative rounded-lg overflow-hidden", className)}
+      className={cn("flex-shrink-0 flex flex-col relative rounded-lg overflow-hidden border border-white/5 bg-card/30 backdrop-blur-md shadow-xl shadow-black/20", className)}
       style={{
         width,
         userSelect: 'none',
-        backgroundColor: '#0a0a0a',
-        border: 'none',
-        boxShadow: `
-          /* Outer neomorphic shadows - light source from top-left */
-          2px 2px 4px ${neomorphicShadow},
-          -2px -2px 4px ${neomorphicLight},
-          /* Inner neomorphic shadows */
-          inset 2px 2px 4px ${neomorphicInsetShadow},
-          inset -2px -2px 4px ${neomorphicInsetLight},
-          /* Subtle color accent glow */
-          2px 4px 8px 0 ${colorAccent},
-          inset 0 0 12px 0 ${colorAccentInset}
-        `
+        ...style
       }}
     >
       {/* Header */}
-      <div 
+      <div
         className="bg-[#111111] p-4 border-b-2 relative"
         style={{ borderColor: color }}
       >
@@ -248,7 +240,7 @@ export function ModelColumn({
       </div>
 
       {/* Version Tabs */}
-      <div 
+      <div
         className="bg-[#0a0a0a] px-4 py-2 border-b border-[#1a1a1a] relative"
       >
         <div className="flex gap-2 flex-wrap">
@@ -256,11 +248,10 @@ export function ModelColumn({
             <button
               key={response.id}
               onClick={() => onVersionChange(response.version)}
-              className={`px-3 py-1 rounded-full text-xs transition-all ${
-                activeVersion === response.version
-                  ? 'bg-[#ff4f2b] text-white'
-                  : 'bg-[#1a1a1a] text-[#b3b3b3] hover:text-[#f5f5f5]'
-              }`}
+              className={`px-3 py-1 rounded-full text-xs transition-all ${activeVersion === response.version
+                ? 'bg-[#ff4f2b] text-white'
+                : 'bg-[#1a1a1a] text-[#b3b3b3] hover:text-[#f5f5f5]'
+                }`}
               style={{
                 backgroundColor: activeVersion === response.version ? color : undefined
               }}
@@ -278,22 +269,23 @@ export function ModelColumn({
       </div>
 
       {/* Response Body */}
-      <div 
+      <div
         ref={contentRef}
         className="flex-1 overflow-y-auto p-4"
         style={{
-          userSelect: 'text'
+          userSelect: 'text',
+          paddingBottom: contentPaddingBottom
         }}
       >
         {activeResponse && (
           <div className="space-y-4">
             <div className="prose prose-invert max-w-none">
-              <div 
+              <div
                 className="text-[#f5f5f5] whitespace-pre-wrap font-mono text-sm leading-relaxed"
                 style={{
                   userSelect: 'text'
                 }}
-                dangerouslySetInnerHTML={{ 
+                dangerouslySetInnerHTML={{
                   __html: activeResponse.content
                     .replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold text-[#f5f5f5] mb-3">$1</h1>')
                     .replace(/^## (.*$)/gim, '<h2 class="text-lg font-semibold text-[#f5f5f5] mb-2">$1</h2>')
@@ -316,9 +308,9 @@ export function ModelColumn({
                   <Copy className="w-3 h-3 mr-1" />
                   Copy
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm"
                   onClick={onOpenDiff}
                 >
@@ -377,4 +369,3 @@ export function ModelColumn({
     </div>
   )
 }
-

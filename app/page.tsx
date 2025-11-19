@@ -10,12 +10,12 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 import AI_Prompt from '@/components/kokonutui/ai-prompt'
 import { ExamplePromptCards } from '@/components/onedot2/ExamplePromptCards'
 import { getChatHistory, createNewChat, updateChatTitle, initializeDemoChat, addMessageToChat } from '@/lib/chat-storage'
-import type { Project } from '@/components/onedot2/LeftSidebar'
+
 
 export default function Home() {
   const router = useRouter()
   const isDefaultState = true // Root page is always default state
-  
+
   // Sidebar: expanded by default when in default state
   // Use localStorage to persist sidebar state, but default to expanded on default page
   const [leftCollapsed, setLeftCollapsed] = useState(() => {
@@ -30,21 +30,21 @@ export default function Home() {
   const [leftHovered, setLeftHovered] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
-  
+
   // Force sidebar to be collapsed on mobile
   useEffect(() => {
     if (isMobile) {
       setLeftCollapsed(true)
     }
   }, [isMobile])
-  
+
   // Save sidebar state to localStorage when it changes (only on desktop)
   useEffect(() => {
     if (typeof window !== 'undefined' && !isMobile) {
       localStorage.setItem('sidebar-collapsed', String(leftCollapsed))
     }
   }, [leftCollapsed, isMobile])
-  
+
   // Update sidebar state when default state changes (with smooth transition) - only on desktop
   useEffect(() => {
     if (isDefaultState && !isMobile) {
@@ -75,7 +75,7 @@ export default function Home() {
   const [context, setContext] = useState('You are a helpful AI assistant that provides clear, accurate, and concise responses.')
   const [memory, setMemory] = useState('')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-  
+
   // Projects and Chats state
   const [projects, setProjects] = useState<Project[]>([
     { id: 'default', name: 'Default Workspace', lastModified: '2 hours ago' },
@@ -83,7 +83,7 @@ export default function Home() {
     { id: 'api-design', name: 'API Design', lastModified: '3 days ago' },
     { id: 'code-review', name: 'Code Review', lastModified: '1 week ago' }
   ])
-  
+
   const [chats, setChats] = useState<ChatHistory[]>([])
   const [selectedProject, setSelectedProject] = useState('default')
 
@@ -91,7 +91,7 @@ export default function Home() {
   useEffect(() => {
     // Initialize demo chat if it doesn't exist
     initializeDemoChat()
-    
+
     // Load chat history
     const history = getChatHistory()
     setChats(history.map(chat => ({
@@ -102,8 +102,8 @@ export default function Home() {
   }, [])
 
   const handleModelToggle = (modelId: string) => {
-    setActiveModels(prev => 
-      prev.includes(modelId) 
+    setActiveModels(prev =>
+      prev.includes(modelId)
         ? prev.filter(id => id !== modelId)
         : [...prev, modelId]
     )
@@ -131,7 +131,7 @@ export default function Home() {
   }
 
   const handleProjectRename = (projectId: string, name: string) => {
-    setProjects(prev => prev.map(p => 
+    setProjects(prev => prev.map(p =>
       p.id === projectId ? { ...p, name, lastModified: 'Just now' } : p
     ))
   }
@@ -146,21 +146,21 @@ export default function Home() {
   const handleMessageFromPrompt = (message: string) => {
     // Create a new chat
     const newChat = createNewChat()
-    
+
     // Create message object
     const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     const now = new Date().toISOString()
-    
+
     const messageObj = {
       id: messageId,
       prompt: message,
       timestamp: now,
       modelResponses: {}
     }
-    
+
     // Add message to chat (this will save the chat)
     addMessageToChat(newChat.id, messageObj)
-    
+
     // Generate chat name from message
     const words = message.trim().split(/\s+/).slice(0, 4)
     let chatName = words.join(' ')
@@ -170,7 +170,7 @@ export default function Home() {
     if (chatName) {
       updateChatTitle(newChat.id, chatName)
     }
-    
+
     // Refresh chat history
     const history = getChatHistory()
     setChats(history.map(chat => ({
@@ -178,7 +178,7 @@ export default function Home() {
       title: chat.title,
       timestamp: chat.timestamp
     })))
-    
+
     // Navigate to the new chat
     router.push(`/chat/${newChat.id}`)
   }
@@ -258,7 +258,7 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen w-screen bg-black relative overflow-hidden">
+    <div className="h-dvh w-screen bg-background relative overflow-hidden animate-fade-in">
       <SidebarProvider>
         {/* Left Sidebar */}
         <LeftSidebar
@@ -287,7 +287,7 @@ export default function Home() {
       </SidebarProvider>
 
       {/* Main Content Area - Outside SidebarProvider */}
-      <div 
+      <div
         className="absolute inset-0 flex flex-col overflow-hidden transition-all duration-300 ease-in-out"
         style={{
           left: isMobile ? '0px' : (leftCollapsed ? '64px' : '256px'), // Mobile: no offset, Desktop: based on sidebar collapsed state
@@ -307,12 +307,12 @@ export default function Home() {
         />
         {/* CenterWorkspace takes full remaining height */}
         <div className="flex-1 relative overflow-hidden">
-          <CenterWorkspace 
+          <CenterWorkspace
             leftCollapsed={leftCollapsed}
             activeModels={activeModels}
           />
           {/* Progressive glass blur effect behind AI prompt - from bottom to 4-5px above AI prompt */}
-          <div 
+          <div
             className="absolute left-0 right-0 pointer-events-none z-[5]"
             style={{
               bottom: '0px',
@@ -325,10 +325,10 @@ export default function Home() {
             }}
           />
           {/* Example Prompt Cards - centered on screen */}
-          <div className="absolute inset-0 flex items-center justify-center z-10" style={{ paddingBottom: '180px', paddingTop: isMobile ? '40px' : '0px' }}>
+          <div className="absolute inset-0 flex items-center justify-center z-10 animate-slide-up" style={{ paddingBottom: '180px', paddingTop: isMobile ? '40px' : '0px' }}>
             <ExamplePromptCards onCardClick={handleMessageFromPrompt} />
           </div>
-          
+
           {/* Default state: Show ai-prompt component at bottom with proper gap - absolutely positioned */}
           <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center pb-6 pt-4 z-10">
             <AI_Prompt onMessageSent={handleMessageFromPrompt} />

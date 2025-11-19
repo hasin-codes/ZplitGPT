@@ -35,8 +35,8 @@ function ExamplePromptCard({ icon, title, description, onClick, glowColor }: Exa
       onClick={onClick}
       className={cn(
         "group relative flex flex-col items-start rounded-lg h-full",
-        "bg-[#0a0a0a] border border-[#1a1a1a]",
-        "hover:bg-[#0f0f0f] hover:border-[#2a2a2a]",
+        "bg-card/40 backdrop-blur-md border border-white/5",
+        "hover:bg-card/60 hover:border-white/10 hover:shadow-lg hover:shadow-primary/5",
         "transition-all duration-300 ease-in-out",
         "text-left cursor-pointer",
         "w-full overflow-hidden",
@@ -49,17 +49,17 @@ function ExamplePromptCard({ icon, title, description, onClick, glowColor }: Exa
       }}
     >
       {/* Internal glow effect at bottom edge */}
-      <div 
+      <div
         className="absolute bottom-0 left-0 right-0 pointer-events-none rounded-lg opacity-100 group-hover:opacity-120 transition-opacity duration-300"
         style={{
           height: 'clamp(2.5rem, 4vw, 4rem)',
           background: currentGlow.bottomGlow,
         }}
       />
-      
+
       <div className="flex flex-col gap-1.5 sm:gap-3 w-full h-full relative z-10">
         <div className="flex-shrink-0">
-          <div 
+          <div
             className="rounded-lg bg-white/5 border border-white/10 group-hover:bg-white/10 group-hover:border-white/20 flex items-center justify-center transition-all duration-300"
             style={{
               width: 'clamp(1.75rem, 2.5vw + 1.5rem, 2.5rem)',
@@ -72,19 +72,19 @@ function ExamplePromptCard({ icon, title, description, onClick, glowColor }: Exa
           </div>
         </div>
         <div className="flex-1 flex flex-col justify-start min-w-0">
-          <h3 
+          <h3
             className="text-white font-medium mb-1 sm:mb-2 group-hover:text-white transition-colors line-clamp-2"
             style={{ fontSize: 'clamp(0.75rem, 1vw + 0.5rem, 1rem)' }}
           >
             {title}
           </h3>
-          <p 
+          <p
             className="text-[#b3b3b3] leading-relaxed group-hover:text-[#d3d3d3] transition-colors mb-1.5 sm:mb-3 line-clamp-2"
             style={{ fontSize: 'clamp(0.625rem, 0.8vw + 0.4rem, 0.875rem)' }}
           >
             {description}
           </p>
-          <div 
+          <div
             className="flex items-center gap-0.5 sm:gap-1 text-[#b3b3b3] group-hover:text-[#d3d3d3] transition-colors mt-auto"
             style={{ fontSize: 'clamp(0.625rem, 0.8vw + 0.4rem, 0.875rem)' }}
           >
@@ -129,7 +129,7 @@ export function ExamplePromptCards({ onCardClick }: ExamplePromptCardsProps) {
   return (
     <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 relative" style={{ maxWidth: 'min(95vw, 56rem)' }}>
       {/* Progressive glass blur gradient overlay - extends more on top/bottom */}
-      <div 
+      <div
         className="absolute pointer-events-none rounded-xl"
         style={{
           top: 'clamp(-40px, -4vw, -60px)',

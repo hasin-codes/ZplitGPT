@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo } from 'react'
+import useEmblaCarousel from 'embla-carousel-react'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { DiffModal } from './DiffModal'
 import { ModelColumn, ModelResponse } from './ModelColumn'
 import { MODEL_CONFIGS, getModelConfig } from '@/lib/model-config'
@@ -23,7 +25,9 @@ interface ModelColumnData {
 
 export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData }: CenterWorkspaceProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  
+  const isMobile = useIsMobile()
+  const [emblaRef] = useEmblaCarousel({ align: 'center', containScroll: 'trimSnaps' })
+
   // Convert chat data to model column format
   const models = useMemo<ModelColumnData[]>(() => {
     if (!chatData || !chatData.messages || chatData.messages.length === 0) {
@@ -36,7 +40,7 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
             id: config.id,
             name: config.name,
             color: config.color,
-            responses: []
+            responses: [] as ModelResponse[]
           }
         })
         .filter((m): m is ModelColumnData => m !== null)
@@ -75,7 +79,7 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
   }, [chatData, activeModels])
 
   const [modelsState, setModelsState] = useState<ModelColumnData[]>(models)
-  
+
   // Update models when chatData or activeModels change
   useEffect(() => {
     setModelsState(models)
@@ -160,14 +164,14 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
   const openDiffModal = (modelId: string) => {
     // Get all active models (all models that are currently selected/visible)
     const activeModelsList = modelsState.filter(model => activeModels.includes(model.id))
-    
+
     if (activeModelsList.length === 0) return
-    
+
     // Get active responses for all active models
     const comparisonModels = activeModelsList.map(model => {
       const activeVersion = activeVersions[model.id] || model.responses[0]?.version || 'v1'
       const activeResponse = model.responses.find(r => r.version === activeVersion) || model.responses[0]
-      
+
       return {
         id: model.id,
         name: model.name,
@@ -175,7 +179,7 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
         content: activeResponse?.content || ''
       }
     }).filter(m => m.content) // Only include models with content
-    
+
     if (comparisonModels.length > 0) {
       setDiffModal({
         isOpen: true,
@@ -186,22 +190,26 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
 
   const activeModelsList = modelsState.filter(model => activeModels.includes(model.id))
   const activeCount = activeModelsList.length
-  
+
   // Calculate column width: mobile shows 1.05 columns, desktop shows 3 columns
   const getColumnWidth = () => {
+    if (isMobile) {
+      return '85vw' // Mobile: 85% of viewport width
+    }
     if (activeCount <= 2) {
       return `${100 / activeCount}%`
     } else {
-      // Mobile: 1.05 columns with 6px gap, Desktop: 3 columns with 12px gap
-      return 'calc((100% - 6px) / 1.05)'
+      return 'calc((100% - 12px) / 3)' // Desktop: 3 columns with gap
     }
   }
 
   // Handle smooth scroll snapping one model at a time (desktop only)
   useEffect(() => {
+    if (isMobile) return // Skip custom scroll logic on mobile
+
     const container = scrollContainerRef.current
     if (!container || activeCount <= 2) return
-    
+
     // Disable scroll snapping on mobile
     if (typeof window !== 'undefined' && window.innerWidth < 768) return
 
@@ -219,20 +227,20 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
 
     const snapToNearestModel = () => {
       if (!container || isSnapping) return
-      
+
       isSnapping = true
       const containerWidth = container.clientWidth
       const scrollLeft = container.scrollLeft
       const columnWidth = containerWidth / 3.2
-      
+
       // Calculate which model we should snap to (one at a time)
       const currentModelIndex = Math.round(scrollLeft / columnWidth)
       const targetScroll = currentModelIndex * columnWidth
-      
+
       // Ensure we don't scroll beyond bounds
       const maxScroll = container.scrollWidth - containerWidth
       const clampedScroll = Math.max(0, Math.min(targetScroll, maxScroll))
-      
+
       container.scrollTo({
         left: clampedScroll,
         behavior: 'smooth'
@@ -254,26 +262,26 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
       if (Math.abs(e.deltaX) > 0) {
         e.preventDefault()
         e.stopPropagation()
-        
+
         const containerWidth = container.clientWidth
         const columnWidth = containerWidth / 3.2
         const currentScroll = container.scrollLeft
-        
+
         // Determine direction based on scroll delta
         // Even small scrolls should move to next/previous model
         const direction = e.deltaX > 0 ? 1 : -1
-        
+
         // Calculate current model index
         const currentModelIndex = Math.round(currentScroll / columnWidth)
-        
+
         // Move to next or previous model
         const targetModelIndex = currentModelIndex + direction
         const targetScroll = targetModelIndex * columnWidth
-        
+
         // Ensure we don't scroll beyond bounds
         const maxScroll = container.scrollWidth - containerWidth
         const clampedScroll = Math.max(0, Math.min(targetScroll, maxScroll))
-        
+
         // Only move if we're not already at the target
         if (Math.abs(clampedScroll - currentScroll) > 10) {
           isSnapping = true
@@ -297,11 +305,53 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
       container.removeEventListener('wheel', handleWheel)
       clearTimeout(scrollTimeout)
     }
-  }, [activeCount, activeModelsList])
+  }, [activeCount, activeModelsList, isMobile])
+
+  if (isMobile) {
+    return (
+      <div className="h-full w-full bg-transparent overflow-hidden">
+        <div className="h-full" ref={emblaRef}>
+          <div className="flex h-full touch-pan-y gap-4 px-4">
+            {activeModelsList.length > 0 ? (
+              activeModelsList.map((model, index) => (
+                <div key={model.id} className="flex-[0_0_85vw] h-full min-w-0">
+                  <ModelColumn
+                    id={model.id}
+                    name={model.name}
+                    color={model.color}
+                    responses={model.responses}
+                    activeVersion={activeVersions[model.id] || (model.responses[0]?.version || 'v1')}
+                    onVersionChange={(version) => handleVersionChange(model.id, version)}
+                    onAddVersion={() => addNewVersion(model.id)}
+                    onOpenDiff={() => openDiffModal(model.id)}
+                    width="100%"
+                    className="h-full animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                    contentPaddingBottom="160px"
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-[#666666] text-sm">
+                No messages yet. Start a conversation to see model responses here.
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Diff Modal */}
+        <DiffModal
+          isOpen={diffModal.isOpen}
+          onClose={() => setDiffModal(prev => ({ ...prev, isOpen: false }))}
+          models={diffModal.models}
+        />
+      </div>
+    )
+  }
 
   return (
-    <div className="h-full w-full bg-black overflow-hidden">
-      <div 
+    <div className="h-full w-full bg-transparent overflow-hidden">
+      <div
         ref={scrollContainerRef}
         className={cn(
           "h-full w-full flex overflow-x-auto",
@@ -316,20 +366,24 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
         }}
       >
         {activeModelsList.length > 0 ? (
-          activeModelsList.map((model) => (
-          <ModelColumn
-            key={model.id}
-            id={model.id}
-            name={model.name}
-            color={model.color}
-            responses={model.responses}
+          activeModelsList.map((model, index) => (
+            <ModelColumn
+              key={model.id}
+              id={model.id}
+              name={model.name}
+              color={model.color}
+              responses={model.responses}
               activeVersion={activeVersions[model.id] || (model.responses[0]?.version || 'v1')}
-            onVersionChange={(version) => handleVersionChange(model.id, version)}
-            onAddVersion={() => addNewVersion(model.id)}
-            onOpenDiff={() => openDiffModal(model.id)}
-            width={getColumnWidth()}
-            className={chatId ? "md:!w-[calc((100%-12px)/3)]" : "md:!w-[calc(100%/3)]"}
-          />
+              onVersionChange={(version) => handleVersionChange(model.id, version)}
+              onAddVersion={() => addNewVersion(model.id)}
+              onOpenDiff={() => openDiffModal(model.id)}
+              width={getColumnWidth()}
+              className={cn(
+                chatId ? "md:!w-[calc((100%-12px)/3)]" : "md:!w-[calc(100%/3)]",
+                "animate-fade-in"
+              )}
+              style={{ animationDelay: `${index * 100}ms` }}
+            />
           ))
         ) : (
           <div className="flex-1 flex items-center justify-center text-[#666666] text-sm">
