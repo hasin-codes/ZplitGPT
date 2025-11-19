@@ -1,11 +1,32 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowRight, Trash2, Plus } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ArrowRight, Trash2, Plus, Search, Sparkles, X, GripVertical } from 'lucide-react'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  DndContext,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  defaultDropAnimationSideEffects,
+  DragStartEvent,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 interface SavedItem {
   id: string
@@ -19,12 +40,141 @@ interface FlowModalProps {
   onClose: () => void
 }
 
+// Sortable Item Component
+function SortableItem({
+  item,
+  type,
+  onDelete,
+  onMove
+}: {
+  item: SavedItem
+  type: 'system' | 'memory'
+  onDelete: (id: string) => void
+  onMove: (item: SavedItem) => void
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id, data: { type, item } })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  if (isDragging) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="opacity-30 bg-zinc-800/50 border border-zinc-700/50 rounded-xl h-[80px]"
+      />
+    )
+  }
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      className={cn(
+        "group relative rounded-xl border p-4 transition-colors duration-200 select-none cursor-grab active:cursor-grabbing",
+        type === 'system'
+          ? "bg-zinc-900/50 border-zinc-800 hover:border-orange-500/30 hover:bg-orange-500/5"
+          : "bg-zinc-900/50 border-zinc-800 hover:border-blue-500/30 hover:bg-blue-500/5"
+      )}
+    >
+      <div className="flex gap-3 items-start">
+        <div className={cn(
+          "mt-1 p-1 rounded transition-colors",
+          type === 'system' ? "text-zinc-600 group-hover:text-orange-500" : "text-zinc-600 group-hover:text-blue-500"
+        )}
+        >
+          <GripVertical className="w-4 h-4" />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className={cn(
+            "text-sm leading-relaxed text-zinc-300",
+            type === 'system' ? "group-hover:text-orange-100" : "group-hover:text-blue-100"
+          )}>
+            {item.content}
+          </p>
+          {type === 'memory' && (
+            <p className="text-[10px] text-zinc-600 mt-2 font-mono">
+              {new Date(item.timestamp).toLocaleDateString()} • {new Date(item.timestamp).toLocaleTimeString()}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-zinc-900/90 rounded-lg p-1 border border-zinc-800"
+        onPointerDown={(e) => e.stopPropagation()} // Prevent drag start on buttons
+      >
+        <Button
+          onClick={(e) => {
+            e.stopPropagation()
+            onMove(item)
+          }}
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "h-6 w-6 rounded-md transition-colors cursor-pointer",
+            type === 'system'
+              ? "text-zinc-500 hover:text-orange-400 hover:bg-orange-500/10"
+              : "text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10"
+          )}
+        >
+          <ArrowRight className={cn(
+            "w-3.5 h-3.5 transition-transform duration-200",
+            type === 'memory' && "rotate-180"
+          )} />
+        </Button>
+        <Button
+          onClick={(e) => {
+            e.stopPropagation()
+            onDelete(item.id)
+          }}
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+    </motion.div>
+  )
+}
+
 export function FlowModal({ isOpen, onClose }: FlowModalProps) {
   const [systemContexts, setSystemContexts] = useState<SavedItem[]>([])
   const [chatMemories, setChatMemories] = useState<SavedItem[]>([])
-  const [selectedContextIds, setSelectedContextIds] = useState<Set<string>>(new Set())
   const [newContextInput, setNewContextInput] = useState('')
   const [showNewContextInput, setShowNewContextInput] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeDragItem, setActiveDragItem] = useState<SavedItem | null>(null)
+  const [activeDragType, setActiveDragType] = useState<'system' | 'memory' | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Add distance constraint to prevent accidental drags when clicking
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
   // Demo data for system contexts
   const getDemoContexts = (): SavedItem[] => [
@@ -71,10 +221,7 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
     const memoriesJson = localStorage.getItem('Zplitgpt-flow-memories')
     if (memoriesJson) {
       try {
-        const memories = JSON.parse(memoriesJson)
-        setChatMemories(memories)
-        const memoryContextIds = new Set<string>(memories.map((m: SavedItem) => m.id.replace('-memory', '')))
-        setSelectedContextIds(memoryContextIds)
+        setChatMemories(JSON.parse(memoriesJson))
       } catch (e) {
         console.error('Failed to parse saved memories', e)
         setChatMemories([])
@@ -103,292 +250,358 @@ export function FlowModal({ isOpen, onClose }: FlowModalProps) {
   }
 
   const handleMoveToMemory = (context: SavedItem) => {
-    if (selectedContextIds.has(context.id)) {
-      const updatedMemories = chatMemories.filter(m => m.id !== `${context.id}-memory`)
-      setChatMemories(updatedMemories)
-      saveMemoriesToStorage(updatedMemories)
-      setSelectedContextIds(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(context.id)
-        return newSet
-      })
-    } else {
-      const newMemory: SavedItem = {
-        id: `${context.id}-memory`,
-        content: context.content,
-        timestamp: new Date().toISOString(),
-        isNew: true
-      }
-      const updatedMemories = [newMemory, ...chatMemories]
-      setChatMemories(updatedMemories)
-      saveMemoriesToStorage(updatedMemories)
-      setSelectedContextIds(prev => new Set(prev).add(context.id))
+    // Remove from System
+    const updatedSystem = systemContexts.filter(c => c.id !== context.id)
+    setSystemContexts(updatedSystem)
+    saveContextsToStorage(updatedSystem)
 
-      setTimeout(() => {
-        setChatMemories(prev => prev.map(m =>
-          m.id === newMemory.id ? { ...m, isNew: false } : m
-        ))
-      }, 3000)
-    }
-  }
-
-  const handleDeleteContext = (id: string) => {
-    const memoryId = `${id}-memory`
-    const updatedMemories = chatMemories.filter(m => m.id !== memoryId)
+    // Add to Memory
+    const newMemory = { ...context, isNew: true, timestamp: new Date().toISOString() }
+    const updatedMemories = [newMemory, ...chatMemories]
     setChatMemories(updatedMemories)
     saveMemoriesToStorage(updatedMemories)
 
+    setTimeout(() => {
+      setChatMemories(prev => prev.map(m =>
+        m.id === newMemory.id ? { ...m, isNew: false } : m
+      ))
+    }, 3000)
+  }
+
+  const handleMoveToSystem = (memory: SavedItem) => {
+    // Remove from Memory
+    const updatedMemories = chatMemories.filter(m => m.id !== memory.id)
+    setChatMemories(updatedMemories)
+    saveMemoriesToStorage(updatedMemories)
+
+    // Add to System
+    const newSystem = { ...memory, isNew: true }
+    const updatedSystem = [newSystem, ...systemContexts]
+    setSystemContexts(updatedSystem)
+    saveContextsToStorage(updatedSystem)
+  }
+
+  const handleDeleteContext = (id: string) => {
     const updated = systemContexts.filter(item => item.id !== id)
     setSystemContexts(updated)
     saveContextsToStorage(updated)
-    setSelectedContextIds(prev => {
-      const newSet = new Set(prev)
-      newSet.delete(id)
-      return newSet
-    })
   }
 
   const handleDeleteMemory = (id: string) => {
     const updated = chatMemories.filter(item => item.id !== id)
     setChatMemories(updated)
     saveMemoriesToStorage(updated)
-
-    const contextId = id.replace('-memory', '')
-    setSelectedContextIds(prev => {
-      const newSet = new Set(prev)
-      newSet.delete(contextId)
-      return newSet
-    })
   }
 
   const handleForgetAllContexts = () => {
     setSystemContexts([])
     saveContextsToStorage([])
-    setChatMemories([])
-    saveMemoriesToStorage([])
-    setSelectedContextIds(new Set())
   }
 
   const handleForgetAllMemories = () => {
     setChatMemories([])
     saveMemoriesToStorage([])
-    setSelectedContextIds(new Set())
   }
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event
+    const id = active.id as string
+    const item = systemContexts.find(c => c.id === id) || chatMemories.find(m => m.id === id)
+
+    if (item) {
+      setActiveDragItem(item)
+      setActiveDragType(systemContexts.find(c => c.id === id) ? 'system' : 'memory')
+    }
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveDragItem(null)
+    setActiveDragType(null)
+
+    if (!over) return
+
+    const activeId = active.id as string
+    const overId = over.id as string
+
+    // Determine source and destination
+    const isSourceSystem = systemContexts.some(i => i.id === activeId)
+    const isDestSystem = overId === 'system-list' || systemContexts.some(i => i.id === overId)
+    const isDestMemory = overId === 'memory-list' || chatMemories.some(i => i.id === overId)
+
+    // Moving between lists
+    if (isSourceSystem && isDestMemory) {
+      const item = systemContexts.find(i => i.id === activeId)
+      if (item) handleMoveToMemory(item)
+    } else if (!isSourceSystem && isDestSystem) {
+      const item = chatMemories.find(i => i.id === activeId)
+      if (item) handleMoveToSystem(item)
+    }
+    // Reordering within same list
+    else if (isSourceSystem && isDestSystem) {
+      const oldIndex = systemContexts.findIndex(i => i.id === activeId)
+      const newIndex = systemContexts.findIndex(i => i.id === overId)
+      if (oldIndex !== newIndex && newIndex !== -1) {
+        const updated = arrayMove(systemContexts, oldIndex, newIndex)
+        setSystemContexts(updated)
+        saveContextsToStorage(updated)
+      }
+    } else if (!isSourceSystem && isDestMemory) {
+      const oldIndex = chatMemories.findIndex(i => i.id === activeId)
+      const newIndex = chatMemories.findIndex(i => i.id === overId)
+      if (oldIndex !== newIndex && newIndex !== -1) {
+        const updated = arrayMove(chatMemories, oldIndex, newIndex)
+        setChatMemories(updated)
+        saveMemoriesToStorage(updated)
+      }
+    }
+  }
+
+  const filteredContexts = systemContexts.filter(item =>
+    item.content.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="bg-background/95 backdrop-blur-xl border-white/10 text-foreground overflow-hidden flex flex-col p-0 shadow-2xl shadow-black/50"
+        className="bg-zinc-950 border-zinc-800 text-zinc-100 overflow-hidden flex flex-col p-0 shadow-2xl sm:rounded-3xl"
         style={{
-          width: '80vw',
-          height: '40vw',
-          maxWidth: '1600px',
-          maxHeight: '800px'
+          width: '90vw',
+          height: '85vh',
+          maxWidth: '1400px',
+          maxHeight: '900px'
         }}
-        showCloseButton={true}
+        showCloseButton={false}
       >
-        <DialogHeader className="px-8 pt-6 pb-5 flex-shrink-0 border-b border-[#1a1a1a]">
-          <DialogTitle className="text-[#f5f5f5] text-2xl font-semibold">Flow: System Context & Chat Memory</DialogTitle>
-        </DialogHeader>
-
-        <div className="flex-1 flex gap-8 overflow-hidden px-8 py-6">
-          {/* Left Column: System Context */}
-          <div className="w-1/2 flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[#f5f5f5] text-lg font-semibold">System Context</h3>
-              {systemContexts.length > 0 && (
-                <Button
-                  onClick={handleForgetAllContexts}
-                  variant="ghost"
-                  size="sm"
-                  className="text-sm text-[#666666] hover:text-[#ff4f2b] hover:bg-[#1a1a1a] h-9 px-4"
-                >
-                  Clear All
-                </Button>
-              )}
-            </div>
-
-            {showNewContextInput ? (
-              <div className="bg-[#1a1a1a] rounded-xl p-5 border border-[#333333] space-y-4 mb-4">
-                <Textarea
-                  value={newContextInput}
-                  onChange={(e) => setNewContextInput(e.target.value)}
-                  placeholder="Enter new system context..."
-                  className="w-full bg-[#0a0a0a] border-[#333333] text-[#f5f5f5] placeholder-[#666666] resize-none focus:border-[#ff4f2b] min-h-[100px] text-base"
-                  rows={3}
-                />
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleAddContext}
-                    disabled={!newContextInput.trim()}
-                    className="bg-[#ff4f2b] hover:bg-[#ff6b4a] text-white text-sm h-10 px-6"
-                  >
-                    Add Context
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setShowNewContextInput(false)
-                      setNewContextInput('')
-                    }}
-                    variant="outline"
-                    className="border-[#333333] text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm h-10 px-6"
-                  >
-                    Cancel
-                  </Button>
-                </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-8 py-6 border-b border-zinc-800 bg-zinc-950">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-orange-500" />
               </div>
-            ) : (
-              <Button
-                onClick={() => setShowNewContextInput(true)}
-                variant="outline"
-                className="w-full border-[#333333] border-dashed text-[#b3b3b3] hover:text-[#ff4f2b] hover:border-[#ff4f2b] hover:bg-[#1a1a1a] text-sm h-11 mb-4"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Add New System Context
-              </Button>
-            )}
-
-            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
-              {systemContexts.map((item) => {
-                const isSelected = selectedContextIds.has(item.id)
-                return (
-                  <div
-                    key={item.id}
-                    className={cn(
-                      "rounded-xl border transition-all relative overflow-hidden",
-                      isSelected
-                        ? "bg-[#ff8c5a]/10 border-[#ff8c5a] shadow-[0_0_12px_rgba(255,140,90,0.15)]"
-                        : "bg-[#1a1a1a] border-[#2a2a2a] hover:border-[#3a3a3a] hover:bg-[#151515]"
-                    )}
-                  >
-                    {isSelected && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#ff8c5a]" />
-                    )}
-
-                    <div className="p-4 pr-20">
-                      <p className={cn(
-                        "text-base leading-relaxed",
-                        isSelected ? "text-[#ff8c5a] font-medium" : "text-[#e5e5e5]"
-                      )}>
-                        {item.content}
-                      </p>
-                    </div>
-
-                    <div className="absolute right-4 top-4 flex items-center gap-1">
-                      <Button
-                        onClick={() => handleMoveToMemory(item)}
-                        variant="ghost"
-                        size="sm"
-                        className={cn(
-                          "h-8 w-8 p-0 transition-all rounded-lg",
-                          isSelected
-                            ? "text-[#ff8c5a] hover:bg-[#ff8c5a]/20 bg-[#ff8c5a]/10"
-                            : "text-[#666666] hover:text-[#ff4f2b] hover:bg-[#2a2a2a]"
-                        )}
-                        aria-label={isSelected ? "Remove from memory" : "Add to memory"}
-                        title={isSelected ? "Remove from memory" : "Add to memory"}
-                      >
-                        <ArrowRight className={cn(
-                          "w-4 h-4 transition-transform duration-200",
-                          isSelected && "rotate-180"
-                        )} />
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteContext(item.id)}
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-[#666666] hover:text-[#ff4f2b] hover:bg-[#2a2a2a] opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"
-                        aria-label="Delete context"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                )
-              })}
-
-              {systemContexts.length === 0 && !showNewContextInput && (
-                <div className="flex-1 flex items-center justify-center py-20">
-                  <p className="text-[#666666] text-sm">No system contexts yet. Click above to add one.</p>
-                </div>
-              )}
+              <div>
+                <DialogTitle className="text-xl font-semibold tracking-tight text-white">Flow Control</DialogTitle>
+                <p className="text-sm text-zinc-400 font-medium">Manage system contexts and active memory</p>
+              </div>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </Button>
           </div>
 
-          {/* Right Column: Chat Memory */}
-          <div className="w-1/2 flex flex-col overflow-hidden border-l border-[#1a1a1a] pl-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[#f5f5f5] text-lg font-semibold">Chat Memory</h3>
-              {chatMemories.length > 0 && (
-                <Button
-                  onClick={handleForgetAllMemories}
-                  variant="ghost"
-                  size="sm"
-                  className="text-sm text-[#666666] hover:text-[#ff4f2b] hover:bg-[#1a1a1a] h-9 px-4"
-                >
-                  Clear All
-                </Button>
-              )}
-            </div>
-
-            <div className="flex-1 overflow-y-auto space-y-3 pr-2">
-              {chatMemories.map((item) => (
-                <div
-                  key={item.id}
-                  className={cn(
-                    "rounded-xl border transition-all relative overflow-hidden group",
-                    item.isNew
-                      ? "border-cyan-500/50 bg-cyan-500/5 shadow-[0_0_16px_rgba(6,182,212,0.12)]"
-                      : "bg-[#1a1a1a] border-[#2a2a2a] hover:border-[#3a3a3a] hover:bg-[#151515]"
-                  )}
-                >
-                  {item.isNew && (
-                    <>
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 animate-pulse" />
-                      <div className="absolute top-3 right-3">
-                        <span className="text-xs text-cyan-400 px-2 py-1 bg-cyan-500/20 rounded-md font-medium animate-pulse">
-                          New
-                        </span>
-                      </div>
-                    </>
-                  )}
-
-                  <div className={cn(
-                    "p-4",
-                    item.isNew ? "pr-20" : "pr-16"
-                  )}>
-                    <p className={cn(
-                      "text-sm leading-relaxed",
-                      item.isNew ? "text-cyan-100" : "text-[#e5e5e5]"
-                    )}>
-                      {item.content}
-                    </p>
-                  </div>
-
-                  <div className="absolute right-4 top-4">
+          <div className="flex-1 flex overflow-hidden">
+            {/* Left Column: System Context */}
+            <div className="w-1/2 flex flex-col border-r border-zinc-800 bg-zinc-950">
+              <div className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-orange-500 uppercase tracking-wider flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                    System Contexts
+                  </h3>
+                  {systemContexts.length > 0 && (
                     <Button
-                      onClick={() => handleDeleteMemory(item.id)}
+                      onClick={handleForgetAllContexts}
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-[#666666] hover:text-[#ff4f2b] hover:bg-[#2a2a2a] opacity-0 group-hover:opacity-100 transition-opacity rounded-lg"
-                      aria-label="Delete memory"
+                      className="text-xs text-zinc-500 hover:text-red-400 hover:bg-red-500/10 h-7 px-3 rounded-lg transition-colors"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      Clear All
                     </Button>
-                  </div>
+                  )}
                 </div>
-              ))}
 
-              {chatMemories.length === 0 && (
-                <div className="flex-1 flex items-center justify-center py-20">
-                  <p className="text-[#666666] text-sm text-center max-w-xs">
-                    No chat memories yet. Add system contexts from the left panel to get started.
-                  </p>
+                <div className="relative group">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-focus-within:text-orange-500 transition-colors" />
+                  <input
+                    type="text"
+                    placeholder="Search contexts..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-4 text-sm text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all"
+                  />
                 </div>
-              )}
+
+                <AnimatePresence mode="wait">
+                  {showNewContextInput ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: 'auto' }}
+                      exit={{ opacity: 0, y: -10, height: 0 }}
+                      className="bg-zinc-900 rounded-2xl p-4 border border-orange-500/20 shadow-lg shadow-orange-500/5 overflow-hidden"
+                    >
+                      <Textarea
+                        value={newContextInput}
+                        onChange={(e) => setNewContextInput(e.target.value)}
+                        placeholder="Enter a new system context..."
+                        className="w-full bg-transparent border-none text-zinc-100 placeholder:text-zinc-600 resize-none focus:ring-0 min-h-[80px] text-sm p-0 leading-relaxed"
+                        autoFocus
+                      />
+                      <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-zinc-800">
+                        <Button
+                          onClick={() => {
+                            setShowNewContextInput(false)
+                            setNewContextInput('')
+                          }}
+                          variant="ghost"
+                          size="sm"
+                          className="text-zinc-400 hover:text-white hover:bg-white/5"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleAddContext}
+                          disabled={!newContextInput.trim()}
+                          size="sm"
+                          className="bg-orange-600 hover:bg-orange-500 text-white shadow-lg shadow-orange-500/20"
+                        >
+                          Add Context
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      onClick={() => setShowNewContextInput(true)}
+                      className="w-full group flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-zinc-800 text-zinc-500 hover:text-orange-500 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all duration-300"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-zinc-900 group-hover:bg-orange-500/20 flex items-center justify-center transition-colors">
+                        <Plus className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-sm font-medium">Create New Context</span>
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
+                <SortableContext
+                  id="system-list"
+                  items={filteredContexts.map(c => c.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-3 min-h-[100px]">
+                    <AnimatePresence mode="popLayout">
+                      {filteredContexts.map((item) => (
+                        <SortableItem
+                          key={item.id}
+                          item={item}
+                          type="system"
+                          onDelete={handleDeleteContext}
+                          onMove={handleMoveToMemory}
+                        />
+                      ))}
+                    </AnimatePresence>
+                    {filteredContexts.length === 0 && !showNewContextInput && (
+                      <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center mb-4">
+                          <Search className="w-5 h-5 text-zinc-600" />
+                        </div>
+                        <p className="text-zinc-500 text-sm">No contexts found</p>
+                      </div>
+                    )}
+                  </div>
+                </SortableContext>
+              </div>
+            </div>
+
+            {/* Right Column: Chat Memory */}
+            <div className="w-1/2 flex flex-col bg-zinc-950">
+              <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-medium text-blue-500 uppercase tracking-wider flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                    Active Memory
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-[10px] font-medium text-blue-400 border border-blue-500/20">
+                    {chatMemories.length} Active
+                  </span>
+                </div>
+                {chatMemories.length > 0 && (
+                  <Button
+                    onClick={handleForgetAllMemories}
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-zinc-500 hover:text-red-400 hover:bg-red-500/10 h-7 px-3 rounded-lg transition-colors"
+                  >
+                    Clear Memory
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                <SortableContext
+                  id="memory-list"
+                  items={chatMemories.map(m => m.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-3 min-h-[100px]">
+                    <AnimatePresence mode="popLayout">
+                      {chatMemories.map((item) => (
+                        <SortableItem
+                          key={item.id}
+                          item={item}
+                          type="memory"
+                          onDelete={handleDeleteMemory}
+                          onMove={handleMoveToSystem}
+                        />
+                      ))}
+                    </AnimatePresence>
+
+                    {chatMemories.length === 0 && (
+                      <div className="flex flex-col items-center justify-center py-32 text-center opacity-50">
+                        <div className="w-24 h-24 rounded-full bg-zinc-900 flex items-center justify-center mb-6 border border-dashed border-zinc-800">
+                          <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center border border-zinc-800">
+                            <ArrowRight className="w-5 h-5 text-zinc-600" />
+                          </div>
+                        </div>
+                        <h4 className="text-zinc-300 font-medium mb-2">Memory Empty</h4>
+                        <p className="text-zinc-500 text-sm max-w-[200px]">
+                          Drag contexts here or use the arrow button to add them to active memory.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </SortableContext>
+              </div>
             </div>
           </div>
-        </div>
+
+          <DragOverlay dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }) }}>
+            {activeDragItem ? (
+              <div className={cn(
+                "rounded-xl border p-4 bg-zinc-900 shadow-2xl cursor-grabbing w-[400px] select-none",
+                activeDragType === 'system' ? "border-orange-500/50" : "border-blue-500/50"
+              )}>
+                <div className="flex gap-3 items-start">
+                  <div className={cn(
+                    "mt-1 p-1 rounded",
+                    activeDragType === 'system' ? "text-orange-500" : "text-blue-500"
+                  )}
+                  >
+                    <GripVertical className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm leading-relaxed text-zinc-200">
+                      {activeDragItem.content}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </DialogContent>
     </Dialog>
   )

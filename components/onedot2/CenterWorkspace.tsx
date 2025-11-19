@@ -191,7 +191,7 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
   const activeModelsList = modelsState.filter(model => activeModels.includes(model.id))
   const activeCount = activeModelsList.length
 
-  // Calculate column width: mobile shows 1.05 columns, desktop shows 3 columns
+  // Calculate column width: mobile shows 1.05 columns, desktop shows 3 columns + partial 4th
   const getColumnWidth = () => {
     if (isMobile) {
       return '85vw' // Mobile: 85% of viewport width
@@ -199,7 +199,7 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
     if (activeCount <= 2) {
       return `${100 / activeCount}%`
     } else {
-      return 'calc((100% - 12px) / 3)' // Desktop: 3 columns with gap
+      return 'calc((100% - 48px) / 3.3)' // Desktop: ~3 columns with partial 4th visible
     }
   }
 
@@ -354,15 +354,14 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
       <div
         ref={scrollContainerRef}
         className={cn(
-          "h-full w-full flex overflow-x-auto",
-          chatId ? "gap-1.5 md:gap-3" : "gap-0"
+          "h-full w-full flex overflow-x-auto", // Removed items-start to default to stretch
+          chatId ? "gap-4 md:gap-6 px-4 md:px-6 py-6" : "gap-0"
         )}
         style={{
-          scrollbarWidth: 'thin',
-          scrollbarColor: '#333333 #0a0a0a',
+          scrollbarWidth: 'none', /* Hide scrollbar for cleaner look */
+          msOverflowStyle: 'none',
           scrollBehavior: 'smooth',
           userSelect: 'none',
-          padding: '12px'
         }}
       >
         {activeModelsList.length > 0 ? (
@@ -379,7 +378,8 @@ export function CenterWorkspace({ leftCollapsed, activeModels, chatId, chatData 
               onOpenDiff={() => openDiffModal(model.id)}
               width={getColumnWidth()}
               className={cn(
-                chatId ? "md:!w-[calc((100%-12px)/3)]" : "md:!w-[calc(100%/3)]",
+                "h-full", // Ensure full height
+                chatId ? "md:!w-[calc((100%-48px)/3)]" : "md:!w-[calc(100%/3)]",
                 "animate-fade-in"
               )}
               style={{ animationDelay: `${index * 100}ms` }}

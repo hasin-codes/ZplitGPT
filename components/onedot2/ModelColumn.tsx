@@ -181,89 +181,63 @@ export function ModelColumn({
     }
   }
 
-  // Convert hex color to rgba for subtle glow
-  const hexToRgba = (hex: string, alpha: number) => {
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
-
-  // Neomorphism color theory: Calculate light and shadow from background
-  // For dark theme: light = slightly lighter, shadow = darker
-  // Background: #0a0a0a (very dark)
-  const neomorphicLight = 'rgba(20, 20, 20, 0.3)' // Slightly lighter than background
-  const neomorphicShadow = 'rgba(0, 0, 0, 0.3)' // Darker shadow
-  const neomorphicInsetLight = 'rgba(15, 15, 15, 0.2)' // Subtle inner highlight
-  const neomorphicInsetShadow = 'rgba(5, 5, 5, 0.3)' // Inner shadow
-
-  // Subtle color accent for neomorphic style (very low opacity)
-  const colorAccent = hexToRgba(color, 0.05)
-  const colorAccentInset = hexToRgba(color, 0.02)
-
   return (
     <div
       ref={columnRef}
       data-model-column={id}
-      className={cn("flex-shrink-0 flex flex-col relative rounded-lg overflow-hidden border border-white/5 bg-card/30 backdrop-blur-md shadow-xl shadow-black/20", className)}
+      className={cn(
+        "flex-shrink-0 flex flex-col relative rounded-xl overflow-hidden border border-white/10 bg-[#0F0F0F]/90 backdrop-blur-xl shadow-2xl transition-all duration-300 hover:border-white/20",
+        className
+      )}
       style={{
         width,
         userSelect: 'none',
         ...style
       }}
     >
-      {/* Header */}
-      <div
-        className="bg-[#111111] p-4 border-b-2 relative"
-        style={{ borderColor: color }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-3 h-3 rounded-full flex-shrink-0"
-              style={{ backgroundColor: color }}
-            />
-            <h3 className="text-[#f5f5f5] font-medium text-sm">{name}</h3>
-          </div>
+      {/* Header - Minimal & Clean */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-white/[0.02]">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-2.5 h-2.5 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+            style={{ backgroundColor: color, boxShadow: `0 0 12px ${color}40` }}
+          />
+          <h3 className="text-white/90 font-medium text-[15px] tracking-tight">{name}</h3>
+        </div>
+        <div className="flex items-center gap-1">
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => setAdvanceControlsOpen(true)}
-            className="h-7 w-7 p-0 text-[#666666] hover:text-[#ff4f2b] hover:bg-[#1a1a1a] border border-transparent hover:border-[#333333] transition-all duration-200 relative"
-            title="Advanced Controls"
+            className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            {/* Subtle hint dot */}
-            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#ff4f2b] opacity-40" />
+            <SlidersHorizontal className="w-4 h-4" />
           </Button>
         </div>
       </div>
 
-      {/* Version Tabs */}
-      <div
-        className="bg-[#0a0a0a] px-4 py-2 border-b border-[#1a1a1a] relative"
-      >
-        <div className="flex gap-2 flex-wrap">
+      {/* Version Tabs - Segmented Control Style */}
+      <div className="px-5 py-3 border-b border-white/5 bg-black/20">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           {responses.map((response) => (
             <button
               key={response.id}
               onClick={() => onVersionChange(response.version)}
-              className={`px-3 py-1 rounded-full text-xs transition-all ${activeVersion === response.version
-                ? 'bg-[#ff4f2b] text-white'
-                : 'bg-[#1a1a1a] text-[#b3b3b3] hover:text-[#f5f5f5]'
-                }`}
-              style={{
-                backgroundColor: activeVersion === response.version ? color : undefined
-              }}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 whitespace-nowrap",
+                activeVersion === response.version
+                  ? "bg-white/10 text-white shadow-sm ring-1 ring-white/10"
+                  : "text-white/40 hover:text-white/70 hover:bg-white/5"
+              )}
             >
               {response.version}
             </button>
           ))}
           <button
             onClick={onAddVersion}
-            className="px-3 py-1 rounded-full text-xs bg-[#2a2a2a] text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#3a3a3a] transition-all"
+            className="px-3 py-1.5 rounded-md text-xs font-medium text-white/40 hover:text-white hover:bg-white/5 transition-all duration-200 whitespace-nowrap flex items-center gap-1"
           >
-            + New
+            <span>+</span> New
           </button>
         </div>
       </div>
@@ -271,66 +245,64 @@ export function ModelColumn({
       {/* Response Body */}
       <div
         ref={contentRef}
-        className="flex-1 overflow-y-auto p-4"
+        className="flex-1 overflow-y-auto p-5 scroll-smooth [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/20"
         style={{
           userSelect: 'text',
           paddingBottom: contentPaddingBottom
         }}
       >
         {activeResponse && (
-          <div className="space-y-4">
+          <div className="space-y-6 animate-in fade-in duration-500 slide-in-from-bottom-2">
             <div className="prose prose-invert max-w-none">
               <div
-                className="text-[#f5f5f5] whitespace-pre-wrap font-mono text-sm leading-relaxed"
+                className="text-white/80 whitespace-pre-wrap font-sans text-[15px] leading-7 tracking-normal"
                 style={{
                   userSelect: 'text'
                 }}
                 dangerouslySetInnerHTML={{
                   __html: activeResponse.content
-                    .replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold text-[#f5f5f5] mb-3">$1</h1>')
-                    .replace(/^## (.*$)/gim, '<h2 class="text-lg font-semibold text-[#f5f5f5] mb-2">$1</h2>')
-                    .replace(/^### (.*$)/gim, '<h3 class="text-base font-medium text-[#f5f5f5] mb-2">$1</h3>')
-                    .replace(/\*\*(.*)\*\*/gim, '<strong class="text-[#f5f5f5]">$1</strong>')
-                    .replace(/\*(.*)\*/gim, '<em class="text-[#b3b3b3]">$1</em>')
-                    .replace(/^- (.*$)/gim, '<li class="text-[#b3b3b3] ml-4">$1</li>')
-                    .replace(/^\d+\. (.*$)/gim, '<li class="text-[#b3b3b3] ml-4 list-decimal">$1</li>')
-                    .replace(/`([^`]+)`/gim, '<code class="bg-[#1a1a1a] text-[#ff4f2b] px-1 py-0.5 rounded text-xs">$1</code>')
-                    .replace(/\n\n/gim, '</p><p class="mb-4">')
-                    .replace(/^(.)/gim, '<p class="mb-4">$1')
+                    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-semibold text-white mb-4 mt-2 tracking-tight">$1</h1>')
+                    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-medium text-white/90 mb-3 mt-6 tracking-tight">$1</h2>')
+                    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-medium text-white/90 mb-2 mt-4">$1</h3>')
+                    .replace(/\*\*(.*)\*\*/gim, '<strong class="font-semibold text-white">$1</strong>')
+                    .replace(/\*(.*)\*/gim, '<em class="text-white/60 italic">$1</em>')
+                    .replace(/^- (.*$)/gim, '<li class="text-white/70 ml-4 pl-2 relative before:content-[\'•\'] before:absolute before:-left-4 before:text-white/30">$1</li>')
+                    .replace(/^\d+\. (.*$)/gim, '<li class="text-white/70 ml-4 list-decimal marker:text-white/30">$1</li>')
+                    .replace(/`([^`]+)`/gim, '<code class="bg-white/10 text-white/90 px-1.5 py-0.5 rounded text-[13px] font-mono border border-white/5">$1</code>')
+                    .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre class="bg-black/40 border border-white/10 rounded-lg p-4 overflow-x-auto my-4"><code class="text-sm font-mono text-white/80">$2</code></pre>')
+                    .replace(/\n\n/gim, '</p><p class="mb-4 last:mb-0">')
+                    .replace(/^(.)/gim, '<p class="mb-4 last:mb-0">$1')
                 }}
               />
             </div>
 
-            {/* Inline Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-[#1a1a1a]">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm">
-                  <Copy className="w-3 h-3 mr-1" />
+            {/* Inline Actions & Stats - Compact Footer */}
+            <div className="flex items-center justify-between pt-4 mt-6 border-t border-white/5">
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-white/40 hover:text-white hover:bg-white/10 rounded-md transition-colors">
+                  <Copy className="w-3.5 h-3.5 mr-1.5" />
                   Copy
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm"
+                  className="h-7 px-2 text-xs text-white/40 hover:text-white hover:bg-white/10 rounded-md transition-colors"
                   onClick={onOpenDiff}
                 >
-                  <Diff className="w-3 h-3 mr-1" />
+                  <Diff className="w-3.5 h-3.5 mr-1.5" />
                   Diff
                 </Button>
-                <Button variant="ghost" size="sm" className="text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm">
-                  <Download className="w-3 h-3 mr-1" />
-                  Export
-                </Button>
               </div>
-              <div className="flex items-center gap-2 text-xs text-[#b3b3b3]">
-                <div className="flex items-center gap-1">
+
+              <div className="flex items-center gap-3 text-[11px] font-medium text-white/30 bg-white/[0.03] px-3 py-1.5 rounded-full border border-white/[0.02]">
+                <div className="flex items-center gap-1.5">
                   <Timer className="w-3 h-3" />
                   <span>{displayLatency.toFixed(1)}s</span>
                 </div>
-                <span className="text-[#666666]">·</span>
-                <div className="flex items-center gap-1">
+                <div className="w-px h-3 bg-white/10" />
+                <div className="flex items-center gap-1.5">
                   <Coins className="w-3 h-3" />
-                  <span>{displayTokens} tokens</span>
+                  <span>{displayTokens} tok</span>
                 </div>
               </div>
             </div>
@@ -338,30 +310,32 @@ export function ModelColumn({
         )}
       </div>
 
-      {/* Scroll to Bottom Button - Positioned at bottom right of column */}
-      {showScrollToBottom && (
+      {/* Scroll to Bottom Button */}
+      <div
+        className={cn(
+          "absolute bottom-6 right-6 z-20 transition-all duration-300 transform",
+          showScrollToBottom ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0 pointer-events-none"
+        )}
+      >
         <button
           onClick={handleScrollToBottom}
-          className="absolute bottom-4 right-4 z-20 w-8 h-8 rounded-md bg-[#2a2a2a] border border-[#3a3a3a] hover:bg-[#3a3a3a] hover:border-[#4a4a4a] transition-all duration-200 flex items-center justify-center shadow-lg"
-          style={{
-            opacity: showScrollToBottom ? 1 : 0,
-            pointerEvents: showScrollToBottom ? 'auto' : 'none'
-          }}
+          className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 text-white/70 hover:text-white flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95"
         >
-          <ChevronDown className="w-4 h-4 text-[#b3b3b3]" />
+          <ChevronDown className="w-4 h-4" />
         </button>
-      )}
+      </div>
 
       {/* Advanced Controls Modal */}
       <Dialog open={advanceControlsOpen} onOpenChange={setAdvanceControlsOpen}>
-        <DialogContent className="w-[95vw] max-w-[95vw] h-auto max-h-[95vh] bg-[#0a0a0a] border-[#1a1a1a] text-[#f5f5f5] overflow-hidden flex flex-col p-0 md:max-w-2xl md:max-h-[85vh]">
-          <DialogHeader className="px-4 pt-4 pb-2 flex-shrink-0">
-            <DialogTitle className="text-[#f5f5f5] text-lg font-semibold flex items-center gap-2">
-              <SlidersHorizontal className="w-5 h-5 text-[#ff4f2b]" />
-              Advanced Controls - {name}
+        <DialogContent className="w-[95vw] max-w-[95vw] h-auto max-h-[95vh] bg-[#0F0F0F] border-white/10 text-white overflow-hidden flex flex-col p-0 md:max-w-2xl md:max-h-[85vh] shadow-2xl">
+          <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b border-white/5">
+            <DialogTitle className="text-white text-lg font-medium flex items-center gap-2">
+              <SlidersHorizontal className="w-5 h-5 text-white/70" />
+              Model Settings
+              <span className="text-white/40 font-normal text-sm ml-2">— {name}</span>
             </DialogTitle>
           </DialogHeader>
-          <div className="overflow-y-auto px-4 pb-4">
+          <div className="overflow-y-auto px-6 pb-6 pt-4">
             <AdvanceControls modelId={id} />
           </div>
         </DialogContent>

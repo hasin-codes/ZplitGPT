@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Trash2, Plus } from 'lucide-react'
+import { Trash2, Plus, Search, Sparkles, X } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface SavedItem {
   id: string
@@ -212,115 +213,167 @@ export function ContextMemoryModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent 
-        className="w-[95vw] max-w-4xl h-[70vh] max-h-[70vh] bg-[#0a0a0a] border-[#1a1a1a] text-[#f5f5f5] overflow-hidden flex flex-col p-0"
-        showCloseButton={true}
+      <DialogContent
+        className="bg-zinc-950 border-zinc-800 text-zinc-100 overflow-hidden flex flex-col p-0 shadow-2xl sm:rounded-3xl"
+        style={{
+          width: '95vw',
+          maxWidth: '900px',
+          height: '80vh',
+          maxHeight: '800px'
+        }}
+        showCloseButton={false}
       >
-        <DialogHeader className="px-6 pt-6 pb-4 flex-shrink-0 border-b border-[#1a1a1a]">
-          <DialogTitle className="text-[#f5f5f5] text-xl font-semibold">Saved Context & Memory</DialogTitle>
-        </DialogHeader>
+        {/* Header */}
+        <div className="flex items-center justify-between px-8 py-6 border-b border-zinc-800 bg-zinc-950">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-orange-500" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-semibold tracking-tight text-white">Context & Memory</DialogTitle>
+              <p className="text-sm text-zinc-400 font-medium">Manage system contexts and chat memory</p>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'context' | 'memory')} className="flex-1 flex flex-col overflow-hidden">
-          <div className="px-6 pt-4 pb-0">
-            <TabsList className="w-full bg-[#1a1a1a] border border-[#333333] h-10 p-1">
-              <TabsTrigger 
-                value="context" 
-                className="flex-1 data-[state=active]:bg-[#ff4f2b] data-[state=active]:text-white data-[state=active]:shadow-none text-[#b3b3b3] data-[state=inactive]:hover:text-[#f5f5f5]"
+          <div className="px-8 pt-6 pb-0">
+            <TabsList className="w-full bg-zinc-900/50 border border-zinc-800 h-12 p-1 rounded-xl">
+              <TabsTrigger
+                value="context"
+                className="flex-1 rounded-lg data-[state=active]:bg-zinc-800 data-[state=active]:text-orange-500 data-[state=active]:shadow-sm text-zinc-400 hover:text-zinc-200 transition-all"
               >
                 System Context
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="memory"
-                className="flex-1 data-[state=active]:bg-[#ff4f2b] data-[state=active]:text-white data-[state=active]:shadow-none text-[#b3b3b3] data-[state=inactive]:hover:text-[#f5f5f5]"
+                className="flex-1 rounded-lg data-[state=active]:bg-zinc-800 data-[state=active]:text-blue-500 data-[state=active]:shadow-sm text-zinc-400 hover:text-zinc-200 transition-all"
               >
                 Chat Memory
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="context" className="flex-1 flex flex-col overflow-hidden mt-4 px-6 pb-6">
+          <TabsContent value="context" className="flex-1 flex flex-col overflow-hidden mt-0 px-8 pb-8 pt-6">
             <div className="flex-1 flex flex-col overflow-hidden">
-              {showNewContextInput ? (
-                <div className="bg-[#1a1a1a] rounded-lg p-4 border border-[#333333] space-y-3 mb-4">
-                  <Textarea
-                    value={newContextInput}
-                    onChange={(e) => setNewContextInput(e.target.value)}
-                    placeholder="Enter new system context..."
-                    className="w-full bg-[#000000] border-[#333333] text-[#f5f5f5] placeholder-[#666666] resize-none focus:border-[#ff4f2b] min-h-[80px] text-sm"
-                    rows={3}
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleAddContext}
-                      disabled={!newContextInput.trim()}
-                      className="bg-[#ff4f2b] hover:bg-[#ff6b4a] text-white text-sm h-9"
-                    >
-                      Add Context
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setShowNewContextInput(false)
-                        setNewContextInput('')
-                      }}
-                      variant="outline"
-                      className="border-[#333333] text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm h-9"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <Button
-                  onClick={() => setShowNewContextInput(true)}
-                  variant="outline"
-                  className="w-full border-[#333333] border-dashed text-[#b3b3b3] hover:text-[#ff4f2b] hover:border-[#ff4f2b] hover:bg-[#1a1a1a] text-sm h-10 mb-4"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add New System Context
-                </Button>
-              )}
-
-              <div className="flex-1 overflow-y-auto space-y-3">
-                {savedContexts.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-[#1a1a1a] rounded-lg p-4 border border-[#333333] flex items-start justify-between gap-3 group hover:border-[#444444] transition-colors"
+              <AnimatePresence mode="wait">
+                {showNewContextInput ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: 'auto' }}
+                    exit={{ opacity: 0, y: -10, height: 0 }}
+                    className="bg-zinc-900 rounded-2xl p-4 border border-orange-500/20 shadow-lg shadow-orange-500/5 overflow-hidden mb-4"
                   >
-                    <p className="text-[#f5f5f5] text-sm flex-1 leading-relaxed">{item.content}</p>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <Textarea
+                      value={newContextInput}
+                      onChange={(e) => setNewContextInput(e.target.value)}
+                      placeholder="Enter a new system context..."
+                      className="w-full bg-transparent border-none text-zinc-100 placeholder:text-zinc-600 resize-none focus:ring-0 min-h-[80px] text-sm p-0 leading-relaxed"
+                      autoFocus
+                    />
+                    <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-zinc-800">
                       <Button
-                        onClick={() => handleUseContext(item)}
+                        onClick={() => {
+                          setShowNewContextInput(false)
+                          setNewContextInput('')
+                        }}
                         variant="ghost"
                         size="sm"
-                        className="h-8 px-3 text-xs text-[#b3b3b3] hover:text-[#ff4f2b] hover:bg-[#2a2a2a] opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="text-zinc-400 hover:text-white hover:bg-white/5"
                       >
-                        Use
+                        Cancel
                       </Button>
                       <Button
-                        onClick={() => handleDeleteContext(item.id)}
-                        variant="ghost"
+                        onClick={handleAddContext}
+                        disabled={!newContextInput.trim()}
                         size="sm"
-                        className="h-8 w-8 p-0 text-[#666666] hover:text-[#ff4f2b] hover:bg-[#2a2a2a]"
+                        className="bg-orange-600 hover:bg-orange-500 text-white shadow-lg shadow-orange-500/20"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        Add Context
                       </Button>
                     </div>
-                  </div>
-                ))}
+                  </motion.div>
+                ) : (
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onClick={() => setShowNewContextInput(true)}
+                    className="w-full group flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-zinc-800 text-zinc-500 hover:text-orange-500 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all duration-300 mb-4"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-zinc-900 group-hover:bg-orange-500/20 flex items-center justify-center transition-colors">
+                      <Plus className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-sm font-medium">Create New Context</span>
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2">
+                <AnimatePresence mode="popLayout">
+                  {savedContexts.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="group relative rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 transition-colors duration-200 hover:border-orange-500/30 hover:bg-orange-500/5"
+                    >
+                      <div className="flex gap-3 items-start">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm leading-relaxed text-zinc-300 group-hover:text-orange-100 transition-colors">
+                            {item.content}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-zinc-900/90 rounded-lg p-1 border border-zinc-800">
+                        <Button
+                          onClick={() => handleUseContext(item)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-[10px] font-medium text-zinc-500 hover:text-orange-400 hover:bg-orange-500/10"
+                        >
+                          Use
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteContext(item.id)}
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
 
                 {savedContexts.length === 0 && !showNewContextInput && (
-                  <div className="flex-1 flex items-center justify-center">
-                    <p className="text-[#666666] text-sm">No saved system contexts yet</p>
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center mb-4">
+                      <Search className="w-5 h-5 text-zinc-600" />
+                    </div>
+                    <p className="text-zinc-500 text-sm">No saved system contexts yet</p>
                   </div>
                 )}
               </div>
 
               {savedContexts.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-[#1a1a1a]">
+                <div className="mt-4 pt-4 border-t border-zinc-800">
                   <Button
                     onClick={handleForgetAllContexts}
-                    variant="destructive"
-                    className="w-full bg-[#ff4f2b] hover:bg-[#ff6b4a] text-white text-sm h-10"
+                    variant="ghost"
+                    className="w-full text-zinc-500 hover:text-red-400 hover:bg-red-500/10 text-sm h-10"
                   >
                     Forget All Contexts
                   </Button>
@@ -329,89 +382,121 @@ export function ContextMemoryModal({
             </div>
           </TabsContent>
 
-          <TabsContent value="memory" className="flex-1 flex flex-col overflow-hidden mt-4 px-6 pb-6">
+          <TabsContent value="memory" className="flex-1 flex flex-col overflow-hidden mt-0 px-8 pb-8 pt-6">
             <div className="flex-1 flex flex-col overflow-hidden">
-              {showNewMemoryInput ? (
-                <div className="bg-[#1a1a1a] rounded-lg p-4 border border-[#333333] space-y-3 mb-4">
-                  <Textarea
-                    value={newMemoryInput}
-                    onChange={(e) => setNewMemoryInput(e.target.value)}
-                    placeholder="Enter new chat memory..."
-                    className="w-full bg-[#000000] border-[#333333] text-[#f5f5f5] placeholder-[#666666] resize-none focus:border-[#ff4f2b] min-h-[80px] text-sm"
-                    rows={3}
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleAddMemory}
-                      disabled={!newMemoryInput.trim()}
-                      className="bg-[#ff4f2b] hover:bg-[#ff6b4a] text-white text-sm h-9"
-                    >
-                      Add Memory
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setShowNewMemoryInput(false)
-                        setNewMemoryInput('')
-                      }}
-                      variant="outline"
-                      className="border-[#333333] text-[#b3b3b3] hover:text-[#f5f5f5] hover:bg-[#1a1a1a] text-sm h-9"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <Button
-                  onClick={() => setShowNewMemoryInput(true)}
-                  variant="outline"
-                  className="w-full border-[#333333] border-dashed text-[#b3b3b3] hover:text-[#ff4f2b] hover:border-[#ff4f2b] hover:bg-[#1a1a1a] text-sm h-10 mb-4"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add New Chat Memory
-                </Button>
-              )}
-
-              <div className="flex-1 overflow-y-auto space-y-3">
-                {savedMemories.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-[#1a1a1a] rounded-lg p-4 border border-[#333333] flex items-start justify-between gap-3 group hover:border-[#444444] transition-colors"
+              <AnimatePresence mode="wait">
+                {showNewMemoryInput ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: 'auto' }}
+                    exit={{ opacity: 0, y: -10, height: 0 }}
+                    className="bg-zinc-900 rounded-2xl p-4 border border-blue-500/20 shadow-lg shadow-blue-500/5 overflow-hidden mb-4"
                   >
-                    <p className="text-[#f5f5f5] text-sm flex-1 leading-relaxed">{item.content}</p>
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <Textarea
+                      value={newMemoryInput}
+                      onChange={(e) => setNewMemoryInput(e.target.value)}
+                      placeholder="Enter a new chat memory..."
+                      className="w-full bg-transparent border-none text-zinc-100 placeholder:text-zinc-600 resize-none focus:ring-0 min-h-[80px] text-sm p-0 leading-relaxed"
+                      autoFocus
+                    />
+                    <div className="flex justify-end gap-2 mt-4 pt-3 border-t border-zinc-800">
                       <Button
-                        onClick={() => handleUseMemory(item)}
+                        onClick={() => {
+                          setShowNewMemoryInput(false)
+                          setNewMemoryInput('')
+                        }}
                         variant="ghost"
                         size="sm"
-                        className="h-8 px-3 text-xs text-[#b3b3b3] hover:text-[#ff4f2b] hover:bg-[#2a2a2a] opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="text-zinc-400 hover:text-white hover:bg-white/5"
                       >
-                        Use
+                        Cancel
                       </Button>
                       <Button
-                        onClick={() => handleDeleteMemory(item.id)}
-                        variant="ghost"
+                        onClick={handleAddMemory}
+                        disabled={!newMemoryInput.trim()}
                         size="sm"
-                        className="h-8 w-8 p-0 text-[#666666] hover:text-[#ff4f2b] hover:bg-[#2a2a2a]"
+                        className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        Add Memory
                       </Button>
                     </div>
-                  </div>
-                ))}
+                  </motion.div>
+                ) : (
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onClick={() => setShowNewMemoryInput(true)}
+                    className="w-full group flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-zinc-800 text-zinc-500 hover:text-blue-500 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all duration-300 mb-4"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-zinc-900 group-hover:bg-blue-500/20 flex items-center justify-center transition-colors">
+                      <Plus className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-sm font-medium">Create New Chat Memory</span>
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2">
+                <AnimatePresence mode="popLayout">
+                  {savedMemories.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="group relative rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 transition-colors duration-200 hover:border-blue-500/30 hover:bg-blue-500/5"
+                    >
+                      <div className="flex gap-3 items-start">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm leading-relaxed text-zinc-300 group-hover:text-blue-100 transition-colors">
+                            {item.content}
+                          </p>
+                          <p className="text-[10px] text-zinc-600 mt-2 font-mono">
+                            {new Date(item.timestamp).toLocaleDateString()} • {new Date(item.timestamp).toLocaleTimeString()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-zinc-900/90 rounded-lg p-1 border border-zinc-800">
+                        <Button
+                          onClick={() => handleUseMemory(item)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-[10px] font-medium text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10"
+                        >
+                          Use
+                        </Button>
+                        <Button
+                          onClick={() => handleDeleteMemory(item.id)}
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 rounded-md text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
 
                 {savedMemories.length === 0 && !showNewMemoryInput && (
-                  <div className="flex-1 flex items-center justify-center">
-                    <p className="text-[#666666] text-sm">No saved chat memories yet</p>
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center mb-4">
+                      <Search className="w-5 h-5 text-zinc-600" />
+                    </div>
+                    <p className="text-zinc-500 text-sm">No saved chat memories yet</p>
                   </div>
                 )}
               </div>
 
               {savedMemories.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-[#1a1a1a]">
+                <div className="mt-4 pt-4 border-t border-zinc-800">
                   <Button
                     onClick={handleForgetAllMemories}
-                    variant="destructive"
-                    className="w-full bg-[#ff4f2b] hover:bg-[#ff6b4a] text-white text-sm h-10"
+                    variant="ghost"
+                    className="w-full text-zinc-500 hover:text-red-400 hover:bg-red-500/10 text-sm h-10"
                   >
                     Forget All Memories
                   </Button>

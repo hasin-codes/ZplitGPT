@@ -8,23 +8,24 @@ import type { Project } from '@/components/onedot2/LeftSidebar'
 import { CenterWorkspace } from '@/components/onedot2/CenterWorkspace'
 import { AIInput } from '@/components/onedot2/AIInput'
 import { SettingsModal } from '@/components/onedot2/SettingsModal'
+import { ChatSkeleton } from '@/components/onedot2/ChatSkeleton'
 import { SidebarProvider } from '@/components/ui/sidebar'
-import { 
-  getAllChats, 
-  getChatById, 
-  createNewChat, 
+import {
+  getAllChats,
+  getChatById,
+  createNewChat,
   getChatHistory,
   updateChatTitle,
   initializeDemoChat,
   deleteChat,
-  type ChatData 
+  type ChatData
 } from '@/lib/chat-storage'
 
 export default function ChatPage() {
   const params = useParams()
   const router = useRouter()
   const chatId = params.chatId as string
-  
+
   // Use localStorage to persist sidebar state, but default to collapsed on chat pages
   const [leftCollapsed, setLeftCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -38,21 +39,21 @@ export default function ChatPage() {
   const [leftHovered, setLeftHovered] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
-  
+
   // Force sidebar to be collapsed on mobile
   useEffect(() => {
     if (isMobile) {
       setLeftCollapsed(true)
     }
   }, [isMobile])
-  
+
   // Save sidebar state to localStorage when it changes (only on desktop)
   useEffect(() => {
     if (typeof window !== 'undefined' && !isMobile) {
       localStorage.setItem('sidebar-collapsed', String(leftCollapsed))
     }
   }, [leftCollapsed, isMobile])
-  
+
   // On chat pages, ensure sidebar starts collapsed (with smooth transition) - only on desktop
   useEffect(() => {
     if (!isMobile) {
@@ -74,7 +75,7 @@ export default function ChatPage() {
   const [memory, setMemory] = useState('')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [currentChat, setCurrentChat] = useState<ChatData | null>(null)
-  
+
   // Projects and Chats state
   const [projects, setProjects] = useState<Project[]>([
     { id: 'default', name: 'Default Workspace', lastModified: '2 hours ago' },
@@ -82,7 +83,7 @@ export default function ChatPage() {
     { id: 'api-design', name: 'API Design', lastModified: '3 days ago' },
     { id: 'code-review', name: 'Code Review', lastModified: '1 week ago' }
   ])
-  
+
   const [chats, setChats] = useState<ChatHistory[]>([])
   const [selectedProject, setSelectedProject] = useState('default')
 
@@ -90,23 +91,23 @@ export default function ChatPage() {
   useEffect(() => {
     // Initialize demo chat if it doesn't exist
     initializeDemoChat()
-    
+
     // Load chat history and remove empty chats
     const allChats = getAllChats()
     const emptyChatIds: string[] = []
-    
+
     // Find empty chats
     allChats.forEach(chat => {
       if (chat.messages.length === 0) {
         emptyChatIds.push(chat.id)
       }
     })
-    
+
     // Delete empty chats
     emptyChatIds.forEach(chatId => {
       deleteChat(chatId)
     })
-    
+
     // Load updated chat history
     const history = getChatHistory()
     setChats(history.map(chat => ({
@@ -175,8 +176,8 @@ export default function ChatPage() {
   }, [])
 
   const handleModelToggle = (modelId: string) => {
-    setActiveModels(prev => 
-      prev.includes(modelId) 
+    setActiveModels(prev =>
+      prev.includes(modelId)
         ? prev.filter(id => id !== modelId)
         : [...prev, modelId]
     )
@@ -204,7 +205,7 @@ export default function ChatPage() {
   }
 
   const handleProjectRename = (projectId: string, name: string) => {
-    setProjects(prev => prev.map(p => 
+    setProjects(prev => prev.map(p =>
       p.id === projectId ? { ...p, name, lastModified: 'Just now' } : p
     ))
   }
@@ -305,13 +306,7 @@ export default function ChatPage() {
     setIsSettingsOpen(false)
   }
 
-  if (!currentChat) {
-    return (
-      <div className="h-screen w-screen bg-black flex items-center justify-center">
-        <div className="text-[#f5f5f5]">Loading...</div>
-      </div>
-    )
-  }
+
 
   return (
     <div className="h-screen w-screen bg-black relative overflow-hidden">
@@ -341,7 +336,7 @@ export default function ChatPage() {
       </SidebarProvider>
 
       {/* Main Content Area - Outside SidebarProvider */}
-      <div 
+      <div
         className="absolute inset-0 flex flex-col overflow-hidden transition-all duration-300 ease-in-out"
         style={{
           left: isMobile ? '0px' : (leftCollapsed ? '64px' : '256px'),
@@ -360,13 +355,17 @@ export default function ChatPage() {
           onSidebarToggle={() => setLeftCollapsed(!leftCollapsed)}
           chatId={chatId}
         />
-        <CenterWorkspace 
-          leftCollapsed={leftCollapsed}
-          activeModels={activeModels}
-          chatId={chatId}
-          chatData={currentChat}
-        />
-        <AIInput 
+        {currentChat ? (
+          <CenterWorkspace
+            leftCollapsed={leftCollapsed}
+            activeModels={activeModels}
+            chatId={chatId}
+            chatData={currentChat}
+          />
+        ) : (
+          <ChatSkeleton />
+        )}
+        <AIInput
           leftCollapsed={leftCollapsed}
           selectedChat={chatId}
           onChatNameUpdate={handleChatNameUpdate}
