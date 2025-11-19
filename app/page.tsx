@@ -9,6 +9,7 @@ import { SettingsModal } from '@/components/onedot2/SettingsModal'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import AI_Prompt from '@/components/kokonutui/ai-prompt'
 import { ExamplePromptCards } from '@/components/onedot2/ExamplePromptCards'
+import { HomeView } from '@/components/onedot2/HomeView'
 import { getChatHistory, createNewChat, updateChatTitle, initializeDemoChat, addMessageToChat } from '@/lib/chat-storage'
 
 
@@ -288,11 +289,11 @@ export default function Home() {
 
       {/* Main Content Area - Outside SidebarProvider */}
       <div
-        className="absolute inset-0 flex flex-col overflow-hidden transition-all duration-300 ease-in-out"
+        className="absolute inset-0 flex flex-col overflow-hidden md:transition-all md:duration-300 md:ease-in-out left-0 md:left-[var(--sidebar-width)]"
         style={{
-          left: isMobile ? '0px' : (leftCollapsed ? '64px' : '256px'), // Mobile: no offset, Desktop: based on sidebar collapsed state
+          '--sidebar-width': leftCollapsed ? '64px' : '256px',
           right: '0px'
-        }}
+        } as React.CSSProperties}
       >
         <TopBar
           context={context}
@@ -304,35 +305,11 @@ export default function Home() {
           activeModels={activeModels}
           onModelToggle={handleModelToggle}
           onSidebarToggle={() => setLeftCollapsed(!leftCollapsed)}
+          isHome={true}
         />
         {/* CenterWorkspace takes full remaining height */}
         <div className="flex-1 relative overflow-hidden">
-          <CenterWorkspace
-            leftCollapsed={leftCollapsed}
-            activeModels={activeModels}
-          />
-          {/* Progressive glass blur effect behind AI prompt - from bottom to 4-5px above AI prompt */}
-          <div
-            className="absolute left-0 right-0 pointer-events-none z-[5]"
-            style={{
-              bottom: '0px',
-              top: 'calc(100% - 100% + 180px)', // Approximately 4-5px above AI prompt component (pb-6=24px + pt-4=16px + component height ~140px = ~180px)
-              background: 'transparent',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,0.95) 12%, rgba(0,0,0,0.88) 22%, rgba(0,0,0,0.75) 35%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0.18) 80%, rgba(0,0,0,0.08) 92%, rgba(0,0,0,0) 100%)',
-              WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,0.95) 12%, rgba(0,0,0,0.88) 22%, rgba(0,0,0,0.75) 35%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.35) 65%, rgba(0,0,0,0.18) 80%, rgba(0,0,0,0.08) 92%, rgba(0,0,0,0) 100%)',
-            }}
-          />
-          {/* Example Prompt Cards - centered on screen */}
-          <div className="absolute inset-0 flex items-center justify-center z-10 animate-slide-up" style={{ paddingBottom: '180px', paddingTop: isMobile ? '40px' : '0px' }}>
-            <ExamplePromptCards onCardClick={handleMessageFromPrompt} />
-          </div>
-
-          {/* Default state: Show ai-prompt component at bottom with proper gap - absolutely positioned */}
-          <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center pb-6 pt-4 z-10">
-            <AI_Prompt onMessageSent={handleMessageFromPrompt} />
-          </div>
+          <HomeView onMessageSent={handleMessageFromPrompt} />
         </div>
       </div>
 

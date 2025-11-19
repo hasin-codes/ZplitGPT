@@ -8,14 +8,16 @@ interface CommandDockProps {
 
 export function CommandDock({ onOpenModal }: CommandDockProps) {
   return (
-    <div className="w-full bg-[#0a0a0a] border-b border-[#1a1a1a] h-[60px] flex items-center">
-      <button
-        onClick={onOpenModal}
-        className="w-full flex items-center gap-2 px-4 py-3 hover:bg-[#0a0a0a]/50 transition-colors cursor-pointer"
-      >
-        <Database className="w-4 h-4 text-[#ff4f2b]" />
-        <span className="text-[#b3b3b3] text-sm font-medium">System Context</span>
-      </button>
+    <div className="w-full h-[60px] bg-[#0a0a0a] border-b border-[#1a1a1a] flex items-center justify-center group cursor-pointer hover:bg-[#111111] transition-colors duration-200" onClick={onOpenModal}>
+      <div className="flex items-center gap-3">
+        <div className="p-2 rounded-md bg-[#1a1a1a] group-hover:bg-[#222222] transition-colors border border-[#262626] group-hover:border-[#333333]">
+          <Database className="w-4 h-4 text-[#888888] group-hover:text-[#f5f5f5] transition-colors" />
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[13px] font-medium text-[#e5e5e5] leading-none mb-1">System Context</span>
+          <span className="text-[11px] text-[#666666] leading-none group-hover:text-[#888888] transition-colors">Global Rules</span>
+        </div>
+      </div>
     </div>
   )
 }

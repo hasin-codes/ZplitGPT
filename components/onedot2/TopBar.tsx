@@ -20,6 +20,7 @@ interface TopBarProps {
   onModelToggle: (modelId: string) => void
   onSidebarToggle: () => void
   chatId?: string
+  isHome?: boolean
 }
 
 export function TopBar({
@@ -32,7 +33,8 @@ export function TopBar({
   activeModels,
   onModelToggle,
   onSidebarToggle,
-  chatId
+  chatId,
+  isHome
 }: TopBarProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'context' | 'memory'>('context')
@@ -55,11 +57,11 @@ export function TopBar({
 
         {/* App Logo */}
         <div className="flex items-center flex-shrink-0">
-          <Image 
-            src="/ZplitGPT.svg" 
-            alt="ZplitGPT Logo" 
-            width={32} 
-            height={32} 
+          <Image
+            src="/ZplitGPT.svg"
+            alt="ZplitGPT Logo"
+            width={32}
+            height={32}
             className="w-8 h-8"
           />
         </div>
@@ -67,24 +69,32 @@ export function TopBar({
 
       {/* Desktop TopBar - Original Layout */}
       <div className="hidden md:flex w-full">
-        <div className="w-[18%] border-r border-[#1a1a1a]">
-          <CommandDock onOpenModal={() => {
-            setActiveTab('context')
-            setModalOpen(true)
-          }} />
+        {!isHome && (
+          <div className="w-[13%] border-r border-[#1a1a1a]">
+            <CommandDock onOpenModal={() => {
+              setActiveTab('context')
+              setModalOpen(true)
+            }} />
+          </div>
+        )}
+
+        <div className={`${isHome ? 'w-full flex justify-center' : 'w-[74%]'} border-r border-[#1a1a1a]`}>
+          <div className={isHome ? 'w-full px-4' : 'w-full'}>
+            <ModelBrandSelector
+              activeModels={activeModels}
+              onModelToggle={onModelToggle}
+            />
+          </div>
         </div>
-        <div className="w-[64%] border-r border-[#1a1a1a]">
-          <ModelBrandSelector
-            activeModels={activeModels}
-            onModelToggle={onModelToggle}
-          />
-        </div>
-        <div className="w-[18%]">
-          <ChatMemory onOpenModal={() => {
-            setActiveTab('memory')
-            setModalOpen(true)
-          }} />
-        </div>
+
+        {!isHome && (
+          <div className="w-[13%]">
+            <ChatMemory onOpenModal={() => {
+              setActiveTab('memory')
+              setModalOpen(true)
+            }} />
+          </div>
+        )}
       </div>
 
       {/* Mobile Model Selector - Under TopBar */}
