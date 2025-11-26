@@ -1,5 +1,5 @@
 // Model and Brand data structure
-// This will be replaced with database queries in the future
+// Free-tier Bytez models only
 
 export interface Model {
   id: string
@@ -16,145 +16,80 @@ export interface ModelBrand {
   models: Model[]
 }
 
-// Model brands and their models
-// TODO: Replace with database queries
+// Model brands with FREE Bytez models
 export const MODEL_BRANDS: ModelBrand[] = [
-  {
-    id: 'openai',
-    name: 'OpenAI',
-    logo: 'https://1000logos.net/wp-content/uploads/2024/07/OpenAI-Logo-2022.png',
-    color: '#10a37f',
-    models: [
-      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', available: true, brandId: 'openai' },
-      { id: 'gpt-4', name: 'GPT-4', available: true, brandId: 'openai' },
-      { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', available: true, brandId: 'openai' },
-    ],
-  },
-  {
-    id: 'anthropic',
-    name: 'Anthropic',
-    logo: 'https://cdn.prod.website-files.com/67ce28cfec624e2b733f8a52/68309ab48369f7ad9b4a40e1_open-graph.jpg',
-    color: '#d97757',
-    models: [
-      { id: 'claude-3-haiku', name: 'Claude 3 Haiku', available: true, brandId: 'anthropic' },
-      { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet', available: true, brandId: 'anthropic' },
-      { id: 'claude-3-opus', name: 'Claude 3 Opus', available: true, brandId: 'anthropic' },
-    ],
-  },
-  {
-    id: 'google',
-    name: 'Gemini',
-    logo: 'https://bcassetcdn.com/public/blog/wp-content/uploads/2022/08/29145131/Google-PNG-1024x640.png',
-    color: '#4285f4',
-    models: [
-      { id: 'gemini-pro', name: 'Gemini Pro', available: true, brandId: 'google' },
-      { id: 'gemini-flash', name: 'Gemini Flash', available: true, brandId: 'google' },
-      { id: 'gemini-ultra', name: 'Gemini Ultra', available: true, brandId: 'google' },
-    ],
-  },
-  {
-    id: 'meta',
-    name: 'LLAMA',
-    logo: 'https://static0.xdaimages.com/wordpress/wp-content/uploads/2021/10/Meta-logo.jpeg?w=1200&h=675&fit=crop',
-    color: '#0668e1',
-    models: [
-      { id: 'llama-3.1-70b', name: 'Llama 3.1 70B', available: true, brandId: 'meta' },
-      { id: 'llama-3.1-8b', name: 'Llama 3.1 8B', available: true, brandId: 'meta' },
-      { id: 'llama-3.1-405b', name: 'Llama 3.1 405B', available: true, brandId: 'meta' },
-    ],
-  },
-  {
-    id: 'mistral',
-    name: 'Mistral AI',
-    logo: 'https://www.bigdatawire.com/wp-content/uploads/2024/02/mistral-ai.png',
-    color: '#ff7000',
-    models: [
-      { id: 'mistral-7b', name: 'Mistral 7B', available: true, brandId: 'mistral' },
-      { id: 'mixtral-8x7b', name: 'Mixtral 8x7B', available: true, brandId: 'mistral' },
-      { id: 'mistral-large', name: 'Mistral Large', available: true, brandId: 'mistral' },
-    ],
-  },
   {
     id: 'qwen',
     name: 'Qwen',
-    logo: 'https://images.lifestyleasia.com/wp-content/uploads/sites/2/2025/02/21112012/1_o-q4mpszxwmg4-ofjo2qxw-1600x900.jpeg',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/alibabacloud.svg',
     color: '#ff6a00',
     models: [
-      { id: 'qwen-72b', name: 'Qwen 72B', available: true, brandId: 'qwen' },
-    ],
+      { id: 'Qwen/Qwen2.5-3B-Instruct', name: 'Qwen 2.5 3B', available: true, brandId: 'qwen' },
+      { id: 'Qwen/Qwen2.5-1.5B-Instruct', name: 'Qwen 2.5 1.5B', available: true, brandId: 'qwen' },
+      { id: 'Qwen/Qwen2-1.5B-Instruct', name: 'Qwen 2 1.5B', available: true, brandId: 'qwen' },
+      { id: 'Qwen/Qwen3-4B', name: 'Qwen 3 4B', available: true, brandId: 'qwen' },
+      { id: 'Qwen/Qwen3-1.7B', name: 'Qwen 3 1.7B', available: true, brandId: 'qwen' },
+      { id: 'Qwen/Qwen3-0.6B', name: 'Qwen 3 0.6B', available: true, brandId: 'qwen' }
+    ]
   },
   {
-    id: 'xai',
-    name: 'xAI',
-    logo: 'https://1000logos.net/wp-content/uploads/2023/10/xAI-Logo.jpg',
-    color: '#000000',
+    id: 'google',
+    name: 'Google',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/google.svg',
+    color: '#4285f4',
     models: [
-      { id: 'grok-2', name: 'Grok 2', available: true, brandId: 'xai' },
-    ],
+      { id: 'google/gemma-3-4b-it', name: 'Gemma 3 4B IT', available: true, brandId: 'google' },
+      { id: 'google/gemma-3-1b-it', name: 'Gemma 3 1B IT', available: true, brandId: 'google' }
+    ]
   },
   {
-    id: 'perplexity',
-    name: 'Perplexity',
-    logo: 'https://1000logos.net/wp-content/uploads/2024/08/Perplexity-Logo.png',
-    color: '#20808d',
+    id: 'microsoft',
+    name: 'Microsoft',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/microsoft.svg',
+    color: '#00a4ef',
     models: [
-      { id: 'pplx-70b', name: 'Perplexity 70B', available: true, brandId: 'perplexity' },
-    ],
-  },
-  {
-    id: 'zhipu',
-    name: 'Zhipu AI',
-    logo: 'https://beehiiv-images-production.s3.amazonaws.com/uploads/asset/file/86d7d9aa-e263-48b8-8a51-771d4e2985a5/Frame_236.png?t=1714896117',
-    color: '#5b8def',
-    models: [
-      { id: 'glm-4', name: 'GLM-4', available: true, brandId: 'zhipu' },
-    ],
+      { id: 'microsoft/Phi-3-mini-4k-instruct', name: 'Phi 3 Mini 4K', available: true, brandId: 'microsoft' },
+      { id: 'microsoft/Phi-3-mini-128k-instruct', name: 'Phi 3 Mini 128K', available: true, brandId: 'microsoft' }
+    ]
   },
   {
     id: 'deepseek',
     name: 'DeepSeek',
-    logo: 'https://images.fastcompany.com/image/upload/f_webp,q_auto,c_fit,w_1024,h_1024/wp-cms-2/2025/01/i-0-91268357-deepseek-logo.jpg',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/deepseek.svg',
     color: '#1a56db',
     models: [
-      { id: 'deepseek-coder', name: 'DeepSeek Coder', available: true, brandId: 'deepseek' },
-    ],
+      { id: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B', name: 'DeepSeek R1 Distill 1.5B', available: true, brandId: 'deepseek' }
+    ]
   },
   {
-    id: 'moonshot',
-    name: 'Moonshot AI',
-    logo: 'https://cdn.upmarket.co/staticfiles/2025/11/png/78a3e57adaf9a2ec8b5d48b2a5737816',
-    color: '#6e45e2',
+    id: 'ibm',
+    name: 'IBM',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/ibm.svg',
+    color: '#0f62fe',
     models: [
-      { id: 'moonshot-v1', name: 'Moonshot v1', available: true, brandId: 'moonshot' },
-    ],
+      { id: 'ibm-granite/granite-4-0-h-tiny', name: 'Granite 4.0 Tiny', available: true, brandId: 'ibm' },
+      { id: 'ibm-granite/granite-docling-258M', name: 'Granite Docling 258M', available: true, brandId: 'ibm' }
+    ]
   },
   {
-    id: 'amazon',
-    name: 'Amazon',
-    logo: 'https://fabrikbrands.com/wp-content/uploads/Amazon-Logo-6.png',
-    color: '#ff9900',
+    id: 'tinyllama',
+    name: 'TinyLlama',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/meta.svg',
+    color: '#10b981',
     models: [
-      { id: 'titan-text', name: 'Titan Text', available: true, brandId: 'amazon' },
-    ],
+      { id: 'TinyLlama/TinyLlama-1.1B-Chat-v1.0', name: 'TinyLlama 1.1B Chat', available: true, brandId: 'tinyllama' }
+    ]
   },
   {
-    id: 'nous',
-    name: 'Nous Research',
-    logo: 'https://pbs.twimg.com/media/G2ByMVwaIAAKMyL.jpg',
-    color: '#8b5cf6',
+    id: 'smol',
+    name: 'SmolLM',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/huggingface.svg',
+    color: '#FFD21E',
     models: [
-      { id: 'hermes-2', name: 'Hermes 2', available: true, brandId: 'nous' },
-    ],
-  },
-  {
-    id: 'cerebras',
-    name: 'Cerebras',
-    logo: 'https://cdn.sanity.io/images/e4qjo92p/production/9e2d0caa81c6ac5927545b31fb92878d0395f7f6-1442x962.jpg?auto=format&dpr=2&fit=crop&fp-x=0.5&fp-y=0.5&h=240&q=75&w=385',
-    color: '#00d4ff',
-    models: [
-      { id: 'cerebras-gpt', name: 'Cerebras GPT', available: true, brandId: 'cerebras' },
-    ],
-  },
+      { id: 'HuggingFaceTB/SmolLM2-1.7B-Instruct', name: 'SmolLM2 1.7B', available: true, brandId: 'smol' },
+      { id: 'HuggingFaceTB/SmolVLM-Instruct', name: 'SmolVLM Instruct', available: true, brandId: 'smol' }
+    ]
+  }
 ]
 
 // Helper function to get all models from all brands
@@ -171,4 +106,3 @@ export function getBrandById(brandId: string): ModelBrand | undefined {
 export function getModelById(modelId: string): Model | undefined {
   return getAllModels().find(model => model.id === modelId)
 }
-

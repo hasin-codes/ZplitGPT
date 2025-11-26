@@ -72,7 +72,7 @@ export default function Home() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
-  const [activeModels, setActiveModels] = useState(['gpt-3.5-turbo', 'claude-3-sonnet', 'gemini-pro', 'mistral-7b'])
+  const [activeModels, setActiveModels] = useState(['Qwen/Qwen2.5-3B-Instruct', 'google/gemma-3-4b-it', 'microsoft/Phi-3-mini-4k-instruct', 'HuggingFaceTB/SmolLM2-1.7B-Instruct'])
   const [context, setContext] = useState('You are a helpful AI assistant that provides clear, accurate, and concise responses.')
   const [memory, setMemory] = useState('')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -144,7 +144,7 @@ export default function Home() {
   }
 
   // Handle message sent from ai-prompt component or example cards
-  const handleMessageFromPrompt = (message: string) => {
+  const handleMessageFromPrompt = async (message: string) => {
     // Create a new chat
     const newChat = createNewChat()
 
@@ -152,15 +152,79 @@ export default function Home() {
     const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     const now = new Date().toISOString()
 
-    const messageObj = {
-      id: messageId,
-      prompt: message,
-      timestamp: now,
-      modelResponses: {}
-    }
+    // Prepare messages for API
+    const messages = [
+      {
+        role: 'system' as const,
+        content: context
+      },
+      {
+        role: 'user' as const,
+        content: message
+      }
+    ]
 
-    // Add message to chat (this will save the chat)
-    addMessageToChat(newChat.id, messageObj)
+    // Call Bytez API with active models
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          modelIds: activeModels,
+          messages: messages,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.responses) {
+        // Create model responses object
+        const modelResponses: Record<string, any> = {}
+
+        data.responses.forEach((resp: any) => {
+          modelResponses[resp.modelId] = [{
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            version: 'v1',
+            content: resp.content,
+            timestamp: new Date().toISOString(),
+            latency: resp.latency,
+            tokens: resp.tokens,
+            error: resp.error
+          }]
+        })
+
+        const messageObj = {
+          id: messageId,
+          prompt: message,
+          timestamp: now,
+          modelResponses: modelResponses
+        }
+
+        // Add message to chat (this will save the chat)
+        addMessageToChat(newChat.id, messageObj)
+      } else {
+        // Handle API error
+        const messageObj = {
+          id: messageId,
+          prompt: message,
+          timestamp: now,
+          modelResponses: {}
+        }
+        addMessageToChat(newChat.id, messageObj)
+      }
+    } catch (error) {
+      console.error('Failed to call Bytez API:', error)
+      // Create message with empty responses on error
+      const messageObj = {
+        id: messageId,
+        prompt: message,
+        timestamp: now,
+        modelResponses: {}
+      }
+      addMessageToChat(newChat.id, messageObj)
+    }
 
     // Generate chat name from message
     const words = message.trim().split(/\s+/).slice(0, 4)

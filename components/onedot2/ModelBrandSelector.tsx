@@ -43,11 +43,14 @@ export function ModelBrandSelector({ activeModels, onModelToggle }: ModelBrandSe
 
       const container = containerRef.current
       const containerWidth = container.offsetWidth
-      const padding = 0 // No padding on container
+      const paddingHorizontal = 32 // px-4 on both sides = 32px (16px * 2)
       const gap = 6 // gap-1.5 = 6px
       const moreButtonWidth = 36 // Width of the "More" button
+      const moreButtonPadding = 8 // pl-2 on more button container
+      const moreButtonBorder = 1 // border-l on more button container
+      const moreButtonMargin = 8 // ml-2 on more button container
 
-      const availableWidth = containerWidth - padding - moreButtonWidth
+      const availableWidth = containerWidth - paddingHorizontal - moreButtonWidth - moreButtonPadding - moreButtonBorder - moreButtonMargin
       const brandsToShow: ModelBrand[] = []
 
       // Create a temporary container to measure button widths accurately
@@ -167,7 +170,7 @@ export function ModelBrandSelector({ activeModels, onModelToggle }: ModelBrandSe
     >
       <div className="w-full flex items-center justify-between">
         {/* Row 1: Visible brand buttons */}
-        <div className={`flex items-center gap-1.5 overflow-hidden flex-1 ${dropdownBrands.length === 0 ? 'justify-center' : ''}`}>
+        <div className={`flex items-center gap-1.5 overflow-hidden flex-1 px-4 ${dropdownBrands.length === 0 ? 'justify-center' : ''}`}>
           {row1Brands.map((brand) => renderBrandButton(brand))}
         </div>
 

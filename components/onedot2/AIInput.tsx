@@ -17,9 +17,9 @@ interface AIInputProps {
   onMessageSent?: () => void
 }
 
-export function AIInput({ 
-  leftCollapsed, 
-  selectedChat, 
+export function AIInput({
+  leftCollapsed,
+  selectedChat,
   onChatNameUpdate,
   context,
   onContextChange,
@@ -62,42 +62,103 @@ export function AIInput({
     if (!input.trim() || isSending) return
 
     setIsSending(true)
-    
+
     const promptText = input.trim()
-    
+
     // Create message object
     const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     const now = new Date().toISOString()
-    
+
     // Check if this is the first message (chat might not be saved yet)
     const existingChat = getChatById(selectedChat)
     const isFirstMessage = !existingChat || existingChat.messages.length === 0
-    
-    // Create message object (empty model responses for now - will be populated when AI responds)
-    const message = {
-      id: messageId,
-      prompt: promptText,
-      timestamp: now,
-      modelResponses: {}
+
+    // Prepare messages for API
+    const messages = [
+      {
+        role: 'system' as const,
+        content: context
+      },
+      {
+        role: 'user' as const,
+        content: promptText
+      }
+    ]
+
+    // Get active models - use default models for now
+    // TODO: Pass activeModels as prop from parent component
+    const activeModels = [
+      'Qwen/Qwen2.5-3B-Instruct',
+      'google/gemma-3-4b-it',
+      'microsoft/Phi-3-mini-4k-instruct',
+      'HuggingFaceTB/SmolLM2-1.7B-Instruct'
+    ]
+
+    try {
+      // Call Bytez API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          modelIds: activeModels,
+          messages: messages,
+        }),
+      })
+
+      const data = await response.json()
+
+      let modelResponses: Record<string, any> = {}
+
+      if (data.success && data.responses) {
+        // Create model responses object from API data
+        data.responses.forEach((resp: any) => {
+          modelResponses[resp.modelId] = [{
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            version: 'v1',
+            content: resp.content,
+            timestamp: new Date().toISOString(),
+            latency: resp.latency,
+            tokens: resp.tokens,
+            error: resp.error
+          }]
+        })
+      }
+
+      // Create message object with model responses
+      const message = {
+        id: messageId,
+        prompt: promptText,
+        timestamp: now,
+        modelResponses: modelResponses
+      }
+
+      // Save message to chat
+      addMessageToChat(selectedChat, message)
+    } catch (error) {
+      console.error('Failed to call Bytez API:', error)
+      // Save message with empty responses on error
+      const message = {
+        id: messageId,
+        prompt: promptText,
+        timestamp: now,
+        modelResponses: {}
+      }
+      addMessageToChat(selectedChat, message)
     }
-    
-    // Save message to chat (this will create and save the chat if it doesn't exist)
-    addMessageToChat(selectedChat, message)
-    
+
     // Update chat name based on first prompt
     if (isFirstMessage && promptText) {
       const chatName = generateChatName(promptText)
       onChatNameUpdate(selectedChat, chatName)
       setHasSentFirstMessage(true)
     }
-    
-    // Simulate sending prompt
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
+
     console.log('Sending prompt:', promptText)
     setInput('')
     setIsSending(false)
-    
+
     // Notify parent that message was sent (to refresh chat data)
     onMessageSent?.()
   }

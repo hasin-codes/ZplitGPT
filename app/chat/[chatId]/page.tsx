@@ -70,7 +70,7 @@ export default function ChatPage() {
       }
     }
   }, [chatId, leftCollapsed, isMobile]) // Run when chatId changes
-  const [activeModels, setActiveModels] = useState(['gpt-3.5-turbo', 'claude-3-sonnet', 'gemini-pro', 'mistral-7b'])
+  const [activeModels, setActiveModels] = useState(['Qwen/Qwen2.5-3B-Instruct', 'google/gemma-3-4b-it', 'microsoft/Phi-3-mini-4k-instruct', 'HuggingFaceTB/SmolLM2-1.7B-Instruct'])
   const [context, setContext] = useState('You are a helpful AI assistant that provides clear, accurate, and concise responses.')
   const [memory, setMemory] = useState('')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
